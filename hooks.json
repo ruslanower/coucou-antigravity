@@ -7,7 +7,7 @@
           {
             "type": "command",
             "command": "/bin/sh \"$HOME/Library/Application Support/NotchBuddy/nb-hook\" --agent antigravity PreToolUse",
-            "timeout": 10
+            "timeout": 120
           }
         ]
       }

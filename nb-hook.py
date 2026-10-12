@@ -376,7 +376,33 @@ def main():
                         "tool_name": "AskUserQuestion",
                         "tool_input": {"questions": formatted_qs}
                     }
-                    spawn_antigravity_notch_card(q_card, socket_path)
+                    try:
+                        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+                        s.settimeout(115.0)
+                        s.connect(socket_path)
+                        s.sendall((json.dumps(q_card) + "\n").encode())
+                        chunks = []
+                        while True:
+                            chunk = s.recv(4096)
+                            if not chunk:
+                                break
+                            chunks.append(chunk)
+                            if b'\n' in chunk:
+                                break
+                        s.close()
+                        resp_text = b''.join(chunks).decode().strip()
+                        if resp_text:
+                            resp_obj = json.loads(resp_text)
+                            if resp_obj.get('permissionDecision') == 'answer':
+                                answers = resp_obj.get('answers', {})
+                                ans_list = [f"{k}: {v}" for k, v in answers.items()]
+                                ans_str = "; ".join(ans_list)
+                                out = {"decision": "deny", "reason": f"Відповідь користувача з чілки Coucou: {ans_str}"}
+                                sys.stdout.write(json.dumps(out) + '\n')
+                                sys.stdout.flush()
+                                return
+                    except Exception:
+                        pass
             elif tool_name == 'run_command':
                 cmd = payload.get('tool_input', {}).get('command') or payload.get('tool_input', {}).get('CommandLine', '')
                 perm_card = {
@@ -390,7 +416,34 @@ def main():
                     "command": cmd,
                     "tool_input": payload.get('tool_input', {})
                 }
-                spawn_antigravity_notch_card(perm_card, socket_path)
+                try:
+                    s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+                    s.settimeout(115.0)
+                    s.connect(socket_path)
+                    s.sendall((json.dumps(perm_card) + "\n").encode())
+                    chunks = []
+                    while True:
+                        chunk = s.recv(4096)
+                        if not chunk:
+                            break
+                        chunks.append(chunk)
+                        if b'\n' in chunk:
+                            break
+                    s.close()
+                    resp_text = b''.join(chunks).decode().strip()
+                    if resp_text:
+                        resp_obj = json.loads(resp_text)
+                        decision = resp_obj.get('permissionDecision', '')
+                        if decision in ('allow', 'always'):
+                            sys.stdout.write('{"decision":"allow"}\n')
+                            sys.stdout.flush()
+                            return
+                        elif decision == 'deny':
+                            sys.stdout.write('{"decision":"deny","reason":"Заблоковано з чілки Coucou"}\n')
+                            sys.stdout.flush()
+                            return
+                except Exception:
+                    pass
 
             sys.stdout.write('{"decision":"ask"}\n')
             sys.stdout.flush()

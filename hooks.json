@@ -1,0 +1,49 @@
+{
+  "coucou": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh \"$HOME/Library/Application Support/NotchBuddy/nb-hook\" --agent antigravity PreToolUse",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh \"$HOME/Library/Application Support/NotchBuddy/nb-hook\" --agent antigravity PostToolUse",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "/bin/sh \"$HOME/Library/Application Support/NotchBuddy/nb-hook\" --agent antigravity PreInvocation",
+        "timeout": 10
+      }
+    ],
+    "PostInvocation": [
+      {
+        "type": "command",
+        "command": "/bin/sh \"$HOME/Library/Application Support/NotchBuddy/nb-hook\" --agent antigravity PostInvocation",
+        "timeout": 10
+      }
+    ],
+    "Stop": [
+      {
+        "type": "command",
+        "command": "/bin/sh \"$HOME/Library/Application Support/NotchBuddy/nb-hook\" --agent antigravity Stop",
+        "timeout": 10
+      }
+    ]
+  }
+}

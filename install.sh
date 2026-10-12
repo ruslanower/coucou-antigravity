@@ -15,25 +15,33 @@ fi
 
 SUPPORT_DIR="$HOME/Library/Application Support/NotchBuddy"
 CONFIG_DIR="$HOME/.gemini/config"
-APP_PATH="/Applications/Coucou.app"
 COUCOU_VERSION="v0.3.0"
 DOWNLOAD_URL="https://github.com/Louis-CFM/coucou/releases/download/${COUCOU_VERSION}/Coucou.zip"
+REPO_RAW="https://raw.githubusercontent.com/ruslanower/coucou-antigravity/main"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd || echo "")"
+
+# Визначаємо цільову директорію для програми
+if [ -w "/Applications" ]; then
+    APP_PATH="/Applications/Coucou.app"
+else
+    mkdir -p "$HOME/Applications"
+    APP_PATH="$HOME/Applications/Coucou.app"
+fi
 
 # 1. Завантаження та встановлення Coucou.app
 if [ ! -d "$APP_PATH" ] || [ "$1" == "--force" ]; then
     echo "⬇️  Завантаження Coucou (${COUCOU_VERSION})..."
     TMP_DIR=$(mktemp -d)
     curl -fL -o "${TMP_DIR}/Coucou.zip" "$DOWNLOAD_URL"
-    echo "📦 Розпакування до /Applications..."
+    echo "📦 Розпакування до ${APP_PATH}..."
     unzip -q -o "${TMP_DIR}/Coucou.zip" -d "${TMP_DIR}/extracted"
     rm -rf "$APP_PATH"
-    cp -R "${TMP_DIR}/extracted/Coucou.app" /Applications/
+    cp -R "${TMP_DIR}/extracted/Coucou.app" "$APP_PATH"
     rm -rf "$TMP_DIR"
-    echo "✅ Coucou.app встановлено в /Applications"
+    echo "✅ Coucou.app встановлено в ${APP_PATH}"
 else
-    echo "✅ Coucou.app вже встановлено в /Applications"
+    echo "✅ Coucou.app вже встановлено в ${APP_PATH}"
 fi
 
 # Зняття карантину Gatekeeper
@@ -49,7 +57,6 @@ if [ -n "$SCRIPT_DIR" ] && [ -f "${SCRIPT_DIR}/nb-hook.py" ]; then
     cp "${SCRIPT_DIR}/nb-hook.py" "$SUPPORT_DIR/nb-hook.py"
 else
     echo "🌐 Завантаження оновлених скриптів релея з GitHub..."
-    REPO_RAW="https://raw.githubusercontent.com/ruslanower/coucou-antigravity/main"
     curl -sSL -o "$SUPPORT_DIR/nb-hook" "${REPO_RAW}/nb-hook"
     curl -sSL -o "$SUPPORT_DIR/nb-hook.py" "${REPO_RAW}/nb-hook.py"
 fi
@@ -98,15 +105,16 @@ fi
 echo "🚀 Запуск Coucou..."
 pkill -x Coucou 2>/dev/null || true
 sleep 1
-open -a "/Applications/Coucou.app"
+open "$APP_PATH"
 
 echo "🔐 Відкриття системних налаштувань Спеціальних можливостей (Accessibility)..."
-open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
+open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility" 2>/dev/null || true
 
 echo ""
 echo "🎉 УСТАНОВКА УСПІШНО ЗАВЕРШЕНА!"
 echo "--------------------------------------------------------"
 echo "1. У відкритому вікні 'Спеціальні можливості' увімкніть перемикач навпроти Coucou."
-echo "2. Mochi з'явився у верхній панелі / чілці."
-echo "3. Antigravity тепер дублює всі свої дії, питання та запити дозволів у чілку!"
+echo "2. Якщо macOS запитає дозвіл на показ сповіщень — натисніть 'Дозволити' (Allow)."
+echo "3. Mochi тепер активний у чілці екрана."
+echo "4. Antigravity автоматично транслює всі дії, питання та запити дозволів у чілку!"
 echo "--------------------------------------------------------"

@@ -78,7 +78,7 @@ def spawn_antigravity_notch_card(card_payload, socket_path):
     cleanup_antigravity_worker()
     import subprocess
     script = """
-import socket, json, os, sys, time
+import socket, json, os, sys, time, subprocess
 
 socket_path = sys.argv[1]
 raw_payload = sys.argv[2]
@@ -96,6 +96,36 @@ try:
                 f.write(resp.decode())
         except Exception:
             pass
+        try:
+            resp_obj = json.loads(resp.decode())
+            if resp_obj.get("permissionDecision") == "answer":
+                answers = resp_obj.get("answers", {})
+                chosen_val = list(answers.values())[0] if answers else ""
+                qs = payload.get("tool_input", {}).get("questions", [])
+                opts = qs[0].get("options", []) if qs else []
+                opt_labels = [o.get("label", "") if isinstance(o, dict) else str(o) for o in opts]
+                idx = 0
+                for i, lab in enumerate(opt_labels):
+                    if lab == chosen_val:
+                        idx = i
+                        break
+                down_arrows = "\\n".join(["key code 125\\ndelay 0.05" for _ in range(idx + 1)])
+                osa = f'''
+tell application "System Events"
+    if exists (process "Antigravity") then
+        tell process "Antigravity" to set frontmost to true
+        delay 0.15
+        {down_arrows}
+        key code 49
+        delay 0.05
+        key code 36
+    end if
+end tell
+'''
+                subprocess.run(["osascript", "-e", osa])
+        except Exception as err:
+            with open("/tmp/coucou_osa_error.log", "w") as f:
+                f.write(str(err))
 except Exception as e:
     try:
         with open("/tmp/coucou_worker_error.log", "w") as f:

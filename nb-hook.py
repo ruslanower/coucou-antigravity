@@ -88,15 +88,25 @@ try:
     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     s.settimeout(120.0)
     s.connect(socket_path)
-    s.sendall((json.dumps(payload) + "\n").encode())
+    s.sendall((json.dumps(payload) + "\\n").encode())
     resp = s.recv(4096)
-except Exception:
-    pass
+    if resp:
+        try:
+            with open("/tmp/coucou_last_decision.json", "w") as f:
+                f.write(resp.decode())
+        except Exception:
+            pass
+except Exception as e:
+    try:
+        with open("/tmp/coucou_worker_error.log", "w") as f:
+            f.write(str(e))
+    except Exception:
+        pass
 """
     try:
         proc = subprocess.Popen([
             sys.executable, "-c", script, socket_path, json.dumps(card_payload)
-        ], close_fds=True)
+        ], close_fds=True, start_new_session=True)
         with open("/tmp/coucou_antigravity_worker.pid", "w") as f:
             f.write(str(proc.pid))
     except Exception:
@@ -331,7 +341,7 @@ def main():
 
     # Antigravity handling: duplicate questions & permissions to notch card + IDE prompt
     if agent == 'antigravity':
-        if event in ('PostToolUse', 'PostInvocation', 'Stop'):
+        if event in ('PostToolUse', 'Stop'):
             cleanup_antigravity_worker()
             sys.stdout.write('{}\n')
             sys.stdout.flush()
@@ -360,6 +370,7 @@ def main():
                         "coucou_kind": "ask_user_question",
                         "coucou_agent": "antigravity",
                         "session_id": payload.get('session_id', 'antigravity'),
+                        "cwd": payload.get('cwd', '') or os.getcwd(),
                         "term_program": "iTerm.app",
                         "bundle_id": "com.googlecode.iterm2",
                         "tool_name": "AskUserQuestion",
@@ -372,6 +383,7 @@ def main():
                     "hook_event_name": "PermissionRequest",
                     "coucou_agent": "antigravity",
                     "session_id": payload.get('session_id', 'antigravity'),
+                    "cwd": payload.get('cwd', '') or os.getcwd(),
                     "term_program": "iTerm.app",
                     "bundle_id": "com.googlecode.iterm2",
                     "tool_name": "run_command",

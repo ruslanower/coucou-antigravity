@@ -106,7 +106,7 @@ except Exception as e:
     try:
         proc = subprocess.Popen([
             sys.executable, "-c", script, socket_path, json.dumps(card_payload)
-        ], close_fds=True, start_new_session=True)
+        ], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, close_fds=True, start_new_session=True)
         with open("/tmp/coucou_antigravity_worker.pid", "w") as f:
             f.write(str(proc.pid))
     except Exception:

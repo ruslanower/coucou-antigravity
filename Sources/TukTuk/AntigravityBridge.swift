@@ -2,90 +2,50 @@ import AppKit
 import Foundation
 
 enum AntigravityBridge {
-    static let bundleId = "com.google.antigravity"
     static let appPath = "/Applications/Antigravity.app"
 
-    static func checkAndPromptAccessibility() {
-        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
-        let isTrusted = AXIsProcessTrustedWithOptions(options)
-        if !isTrusted {
-            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-                NSWorkspace.shared.open(url)
-            }
+    static func focusAntigravity(completion: (() -> Void)? = nil) {
+        // 1. Unhide and activate if running
+        if let app = NSWorkspace.shared.runningApplications.first(where: {
+            $0.bundleIdentifier == "com.google.antigravity" || $0.localizedName == "Antigravity"
+        }) {
+            app.unhide()
+            app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
         }
-    }
 
-    static func getRunningAntigravity() -> NSRunningApplication? {
-        if let app = NSRunningApplication.runningApplications(withBundleIdentifier: bundleId).first {
-            return app
-        }
-        return NSWorkspace.shared.runningApplications.first {
-            $0.localizedName == "Antigravity" || $0.localizedName == "Antigravity IDE"
+        // 2. Launch or bring to front via /usr/bin/open
+        let proc = Process()
+        proc.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+        proc.arguments = [appPath]
+        try? proc.run()
+
+        if let completion = completion {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                completion()
+            }
         }
     }
 
     static func submitOption(index: Int) {
         let keyNum = "\(index + 1)"
         focusAntigravity {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                let scriptSource = """
+            let scriptSource = """
 tell application "System Events"
+    launch
+    try
+        set frontmost of (first process whose name is "Antigravity") to true
+    end try
+    delay 0.15
     keystroke "\(keyNum)"
     delay 0.1
     key code 36
 end tell
 """
-                runAppleScript(scriptSource)
-            }
-        }
-    }
-
-    static func focusAntigravity(completion: (() -> Void)? = nil) {
-        // 1. If already running, yield activation and bring to front
-        if let runningApp = getRunningAntigravity() {
-            if #available(macOS 14.0, *) {
-                NSApp.yieldActivation(to: runningApp)
-            }
-            runningApp.activate()
-
-            let bringFrontScript = """
-tell application "System Events"
-    try
-        set frontmost of (first process whose bundle identifier is "\(bundleId)" or name is "Antigravity") to true
-    end try
-end tell
-"""
-            runAppleScript(bringFrontScript)
-
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                completion?()
-            }
-            return
-        }
-
-        // 2. If not running, launch via NSWorkspace
-        let appUrl = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleId) ?? URL(fileURLWithPath: appPath)
-        let config = NSWorkspace.OpenConfiguration()
-        config.activates = true
-
-        NSWorkspace.shared.openApplication(at: appUrl, configuration: config) { app, error in
-            if error != nil {
-                let proc = Process()
-                proc.executableURL = URL(fileURLWithPath: "/usr/bin/open")
-                proc.arguments = [appPath]
-                try? proc.run()
-            }
-            if let completion = completion {
-                // Give Electron window time to initialize
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                    completion()
-                }
-            }
+            runAppleScript(scriptSource)
         }
     }
 
     static func launchIdeaInAntigravity(idea: StartupIdea) {
-        checkAndPromptAccessibility()
         let prompt = """
 Привіт! Почнімо роботу над новим мобільним застосунком: «\(idea.title)».
 
@@ -105,27 +65,29 @@ end tell
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(prompt, forType: .string)
 
-        let isRunning = getRunningAntigravity() != nil
-        let delayBeforePaste = isRunning ? 0.4 : 1.8
+        let isRunning = NSWorkspace.shared.runningApplications.contains(where: {
+            $0.bundleIdentifier == "com.google.antigravity" || $0.localizedName == "Antigravity"
+        })
+        let delayBeforePaste = isRunning ? 0.35 : 1.8
 
         focusAntigravity {
             DispatchQueue.main.asyncAfter(deadline: .now() + delayBeforePaste) {
                 let scriptSource = """
 tell application "System Events"
+    launch
     try
-        set appProc to (first process whose bundle identifier is "\(bundleId)" or name is "Antigravity")
-        set frontmost of appProc to true
-        delay 0.2
-        try
-            click menu item "New Conversation" of menu "File" of menu bar 1 of appProc
-        on error
-            keystroke "n" using command down
-        end try
-        delay 0.4
-        keystroke "v" using command down
-        delay 0.25
-        key code 36
+        set frontmost of (first process whose name is "Antigravity") to true
     end try
+    delay 0.25
+    try
+        click menu item "New Conversation" of menu "File" of menu bar 1 of (first process whose name is "Antigravity")
+    on error
+        keystroke "n" using command down
+    end try
+    delay 0.45
+    keystroke "v" using command down
+    delay 0.25
+    key code 36
 end tell
 """
                 runAppleScript(scriptSource)

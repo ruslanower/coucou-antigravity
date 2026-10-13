@@ -1,7 +1,7 @@
 {
-  "version": "1.0.4",
-  "build": 5,
+  "version": "1.0.5",
+  "build": 6,
   "commit": "HEAD",
-  "releaseNotes": "Повноцінний фоновий перехоплювач реальних сповіщень Telegram, WhatsApp, Пошти та баджів Dock у чілку",
+  "releaseNotes": "Повна підтримка ВСІХ сповіщень macOS (Dynamic Island) у чілці для будь-яких додатків та системи",
   "downloadUrl": "https://github.com/ruslanower/rango/releases/latest/download/Rango.zip"
 }

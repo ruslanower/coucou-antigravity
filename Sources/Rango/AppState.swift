@@ -56,6 +56,9 @@ final class AppState: ObservableObject {
     }
 
     // Notification Toggles
+    @Published var notifyAllSystemNotifications: Bool {
+        didSet { UserDefaults.standard.set(notifyAllSystemNotifications, forKey: "rango_notifyAllSystemNotifications") }
+    }
     @Published var notifyTelegram: Bool {
         didSet { UserDefaults.standard.set(notifyTelegram, forKey: "tuktuk_notifyTelegram") }
     }
@@ -84,6 +87,7 @@ final class AppState: ObservableObject {
         self.autoCloseSeconds = ud.object(forKey: "tuktuk_autoCloseSeconds") != nil ? ud.integer(forKey: "tuktuk_autoCloseSeconds") : 120
         self.hoverExpandEnabled = ud.object(forKey: "tuktuk_hoverExpandEnabled") != nil ? ud.bool(forKey: "tuktuk_hoverExpandEnabled") : true
         self.autoUpdateEnabled = ud.object(forKey: "rango_autoUpdateEnabled") != nil ? ud.bool(forKey: "rango_autoUpdateEnabled") : true
+        self.notifyAllSystemNotifications = ud.object(forKey: "rango_notifyAllSystemNotifications") != nil ? ud.bool(forKey: "rango_notifyAllSystemNotifications") : true
 
         self.notifyTelegram = ud.bool(forKey: "tuktuk_notifyTelegram")
         self.notifyWhatsApp = ud.bool(forKey: "tuktuk_notifyWhatsApp")

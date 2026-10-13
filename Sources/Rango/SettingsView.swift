@@ -275,9 +275,21 @@ struct NotificationsSettingsTab: View {
                 Text("Сповіщення соцмереж та браузера")
                     .font(.system(size: 16, weight: .bold))
 
-                Text("«Rango» може відображати короткі інформаційні плашки у чілці при надходженні повідомлень з браузера чи додатків звʼязку:")
+                Text("«Rango» перетворює вашу чілку на Dynamic Island для Mac, відображаючи всі повідомлення та сповіщення системи:")
                     .font(.system(size: 11.5))
                     .foregroundColor(.secondary)
+
+                GroupBox(label: Label("Головний перемикач", systemImage: "bell.badge.fill")) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Toggle("Відображати ВСІ сповіщення macOS у чілці", isOn: $appState.notifyAllSystemNotifications)
+                            .toggleStyle(.switch)
+                            .font(.system(size: 13, weight: .semibold))
+                        Text("Будь-які сповіщення (Telegram, WhatsApp, Slack, Календар, Пошта, браузери, iPhone) плавно випливатимуть з чілки в реальному часі.")
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(8)
+                }
 
                 GroupBox(label: Label("Канали сповіщень", systemImage: "bubble.left.and.bubble.right.fill")) {
                     VStack(alignment: .leading, spacing: 14) {

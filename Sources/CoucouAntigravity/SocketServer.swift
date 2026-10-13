@@ -121,8 +121,16 @@ final class SocketServer {
         let toolName = (obj["tool_name"] as? String) ?? (obj["tool"] as? String) ?? ""
         NSLog("[CoucouAntigravity] Processing message: type=%@ tool=%@", type, toolName)
 
-        // 1. Direct or Legacy Question
-        if type == "ask_question" || toolName == "ask_question" || toolName == "AskUserQuestion" || type == "ask_user_question" {
+        // 1. Close / Dismiss / PostToolUse completion
+        if type == "close" || type == "dismiss" || type == "Stop" || (type == "PostToolUse" && toolName == "ask_question") {
+            Task { @MainActor in
+                AppState.shared.close()
+            }
+            return
+        }
+
+        // 2. Direct or Legacy Question (never on PostToolUse)
+        if (type == "ask_question" || toolName == "ask_question" || toolName == "AskUserQuestion" || type == "ask_user_question") && type != "PostToolUse" {
             let (questionText, options) = parseQuestionPayload(obj)
             if !questionText.isEmpty && !options.isEmpty {
                 Task { @MainActor in
@@ -130,14 +138,6 @@ final class SocketServer {
                 }
                 return
             }
-        }
-
-        // 2. Close / Dismiss
-        if type == "close" || type == "dismiss" || type == "Stop" || (type == "PostToolUse" && toolName == "ask_question") {
-            Task { @MainActor in
-                AppState.shared.close()
-            }
-            return
         }
 
         // 3. Status notification

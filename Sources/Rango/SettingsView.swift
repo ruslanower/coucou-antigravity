@@ -165,6 +165,18 @@ struct GeneralSettingsTab: View {
                     }
                     .padding(8)
                 }
+
+                // Auto-Update section
+                GroupBox(label: Label("Оновлення Rango", systemImage: "arrow.triangle.2.circlepath")) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Toggle("Автоматично оновлювати Rango у фоні", isOn: $appState.autoUpdateEnabled)
+                            .toggleStyle(.switch)
+                        Text("При виході нових релізів на GitHub, Rango самостійно завантажить оновлення.")
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(8)
+                }
             }
             .padding(20)
         }
@@ -358,8 +370,11 @@ struct NotificationsSettingsTab: View {
 
 // MARK: - 4. About Tab
 struct AboutSettingsTab: View {
+    @ObservedObject var updateManager = UpdateManager.shared
+    @ObservedObject var appState = AppState.shared
+
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 14) {
             Spacer()
 
             RangoAvatarView(size: 64)
@@ -368,13 +383,63 @@ struct AboutSettingsTab: View {
             VStack(spacing: 4) {
                 Text("Rango")
                     .font(.system(size: 18, weight: .bold, design: .rounded))
-                Text("Версія 1.0.0 (ШІ-помічник для Antigravity)")
+                Text("Версія \(updateManager.currentVersion.version) (збірка \(updateManager.currentVersion.build))")
                     .font(.system(size: 12))
                     .foregroundColor(.secondary)
             }
 
+            // Update Status Card
+            VStack(spacing: 8) {
+                HStack(spacing: 8) {
+                    if updateManager.isChecking || updateManager.isUpdating {
+                        ProgressView()
+                            .scaleEffect(0.7)
+                            .frame(width: 16, height: 16)
+                    } else if updateManager.updateAvailable {
+                        Image(systemName: "arrow.down.circle.fill")
+                            .foregroundColor(.green)
+                    } else {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.green)
+                    }
+
+                    Text(updateManager.statusMessage.isEmpty ? "У вас встановлено найновішу версію" : updateManager.statusMessage)
+                        .font(.system(size: 11.5))
+                        .foregroundColor(.primary)
+
+                    Spacer()
+
+                    if updateManager.updateAvailable {
+                        Button(updateManager.isUpdating ? "Оновлення..." : "Оновити зараз") {
+                            updateManager.performUpdate()
+                        }
+                        .disabled(updateManager.isUpdating)
+                        .buttonStyle(.borderedProminent)
+                        .tint(.green)
+                        .controlSize(.small)
+                    } else {
+                        Button("Перевірити") {
+                            Task {
+                                await updateManager.checkForUpdates(silent: false)
+                            }
+                        }
+                        .disabled(updateManager.isChecking)
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                    }
+                }
+
+                Toggle("Автоматичне оновлення у фоні", isOn: $appState.autoUpdateEnabled)
+                    .font(.system(size: 11))
+                    .toggleStyle(.checkbox)
+            }
+            .padding(10)
+            .background(Color.black.opacity(0.05))
+            .cornerRadius(8)
+            .padding(.horizontal, 30)
+
             Text("Нативний інтерактивний помічник чілки MacBook, що синхронізує запитання та генерує ідеї нових застосунків на основі твоїх проєктів у Google Antigravity.")
-                .font(.system(size: 12))
+                .font(.system(size: 11.5))
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)

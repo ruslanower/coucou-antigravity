@@ -58,6 +58,9 @@ cp "${BUILD_DIR}/.build/release/Rango" "${APP_PATH}/Contents/MacOS/"
 if [ -d "${BUILD_DIR}/Resources" ]; then
     cp -r "${BUILD_DIR}/Resources/"* "${APP_PATH}/Contents/Resources/" 2>/dev/null || true
 fi
+if [ -f "${BUILD_DIR}/version.json" ]; then
+    cp "${BUILD_DIR}/version.json" "${APP_PATH}/Contents/Resources/version.json" 2>/dev/null || true
+fi
 
 cat << 'EOF' > "${APP_PATH}/Contents/Info.plist"
 <?xml version="1.0" encoding="UTF-8"?>

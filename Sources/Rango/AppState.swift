@@ -43,6 +43,9 @@ final class AppState: ObservableObject {
     @Published var hoverExpandEnabled: Bool {
         didSet { UserDefaults.standard.set(hoverExpandEnabled, forKey: "tuktuk_hoverExpandEnabled") }
     }
+    @Published var autoUpdateEnabled: Bool {
+        didSet { UserDefaults.standard.set(autoUpdateEnabled, forKey: "rango_autoUpdateEnabled") }
+    }
 
     // Notification Toggles
     @Published var notifyTelegram: Bool {
@@ -72,6 +75,7 @@ final class AppState: ObservableObject {
         self.soundVolume = ud.object(forKey: "tuktuk_soundVolume") != nil ? ud.double(forKey: "tuktuk_soundVolume") : 0.8
         self.autoCloseSeconds = ud.object(forKey: "tuktuk_autoCloseSeconds") != nil ? ud.integer(forKey: "tuktuk_autoCloseSeconds") : 120
         self.hoverExpandEnabled = ud.object(forKey: "tuktuk_hoverExpandEnabled") != nil ? ud.bool(forKey: "tuktuk_hoverExpandEnabled") : true
+        self.autoUpdateEnabled = ud.object(forKey: "rango_autoUpdateEnabled") != nil ? ud.bool(forKey: "rango_autoUpdateEnabled") : true
 
         self.notifyTelegram = ud.bool(forKey: "tuktuk_notifyTelegram")
         self.notifyWhatsApp = ud.bool(forKey: "tuktuk_notifyWhatsApp")

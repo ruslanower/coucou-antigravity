@@ -12,6 +12,7 @@ struct RangoApp: App {
     }
 }
 
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
 
@@ -21,6 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         checkAccessibilityPermissions()
         SocketServer.shared.start()
         NotchWindowController.shared.setup()
+        UpdateManager.shared.startPeriodicCheck()
         NSLog("[Rango] Launched successfully via SwiftUI!")
     }
 
@@ -38,12 +40,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         let menu = NSMenu()
-        menu.addItem(NSMenuItem(title: "Rango v1.0.0 (Активний)", action: nil, keyEquivalent: ""))
+        let ver = UpdateManager.shared.currentVersion.version
+        menu.addItem(NSMenuItem(title: "Rango v\(ver) (Активний)", action: nil, keyEquivalent: ""))
         menu.addItem(NSMenuItem.separator())
 
         let settingsItem = NSMenuItem(title: "Налаштування...", action: #selector(openSettings), keyEquivalent: ",")
         settingsItem.target = self
         menu.addItem(settingsItem)
+
+        let updateItem = NSMenuItem(title: "Перевірити оновлення...", action: #selector(checkUpdates), keyEquivalent: "u")
+        updateItem.target = self
+        menu.addItem(updateItem)
 
         let testItem = NSMenuItem(title: "Тестовий запит у чілку", action: #selector(testQuestion), keyEquivalent: "t")
         testItem.target = self
@@ -60,6 +67,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         item.menu = menu
         self.statusItem = item
+    }
+
+    @objc private func checkUpdates() {
+        Task { @MainActor in
+            await UpdateManager.shared.checkForUpdates(silent: false)
+        }
     }
 
     @objc private func openSettings() {

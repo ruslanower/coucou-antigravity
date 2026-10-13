@@ -128,7 +128,7 @@ final class SocketServer {
         let toolName = (obj["tool_name"] as? String) ?? (obj["tool"] as? String) ?? ""
         NSLog("[Rango] Processing message: type=%@ tool=%@", type, toolName)
 
-        // 1. Close / Dismiss / PostToolUse completion
+        // 1. Close / Dismiss / Question completion / Stop
         if type == "close" || type == "dismiss" || type == "Stop" || (type == "PostToolUse" && toolName == "ask_question") {
             Task { @MainActor in
                 AppState.shared.close()
@@ -136,7 +136,7 @@ final class SocketServer {
             return
         }
 
-        // 2. Direct or Legacy Question (never on PostToolUse)
+        // 2. Interactive Questions (AskUserQuestion / ask_question)
         if (type == "ask_question" || toolName == "ask_question" || toolName == "AskUserQuestion" || type == "ask_user_question") && type != "PostToolUse" {
             let (questionText, options) = parseQuestionPayload(obj)
             if !questionText.isEmpty && !options.isEmpty {
@@ -147,7 +147,7 @@ final class SocketServer {
             }
         }
 
-        // 3. Status notification
+        // 3. Manual status notifications
         if type == "status" {
             let text = obj["text"] as? String ?? "Обробка..."
             Task { @MainActor in
@@ -156,9 +156,102 @@ final class SocketServer {
             return
         }
 
+        // 4. PreToolUse - Live telemetry of active Antigravity tools
+        if type == "PreToolUse" {
+            let toolInput = obj["tool_input"] as? [String: Any]
+            let action = (toolInput?["toolAction"] as? String) ?? (toolInput?["toolSummary"] as? String)
+
+            let statusText: String
+            switch toolName {
+            case "run_command":
+                if let cmd = toolInput?["CommandLine"] as? String, !cmd.isEmpty {
+                    let firstWord = cmd.trimmingCharacters(in: .whitespacesAndNewlines).components(separatedBy: .whitespaces).first ?? ""
+                    if !firstWord.isEmpty && firstWord.count <= 15 {
+                        statusText = "⚡️ Виконую: \(firstWord)..."
+                    } else if let action = action, !action.isEmpty {
+                        statusText = "⚡️ \(action)"
+                    } else {
+                        statusText = "⚡️ Виконую команду..."
+                    }
+                } else if let action = action, !action.isEmpty {
+                    statusText = "⚡️ \(action)"
+                } else {
+                    statusText = "⚡️ Виконую команду..."
+                }
+
+            case "write_to_file", "replace_file_content":
+                if let target = (toolInput?["TargetFile"] as? String)?.components(separatedBy: "/").last, !target.isEmpty {
+                    statusText = "📝 Змінюю \(target)"
+                } else if let action = action, !action.isEmpty {
+                    statusText = "📝 \(action)"
+                } else {
+                    statusText = "📝 Змінюю файл..."
+                }
+
+            case "view_file":
+                if let path = (toolInput?["AbsolutePath"] as? String)?.components(separatedBy: "/").last, !path.isEmpty {
+                    statusText = "📄 Читаю \(path)"
+                } else if let action = action, !action.isEmpty {
+                    statusText = "📄 \(action)"
+                } else {
+                    statusText = "📄 Читаю файл..."
+                }
+
+            case "search_web":
+                if let q = toolInput?["query"] as? String, !q.isEmpty {
+                    let shortQ = q.count > 20 ? String(q.prefix(18)) + "..." : q
+                    statusText = "🌐 Пошук: \(shortQ)"
+                } else {
+                    statusText = "🌐 Шукаю в інтернеті..."
+                }
+
+            case "read_url_content":
+                statusText = "🌐 Читаю сторінку..."
+
+            case "invoke_subagent":
+                statusText = "🤖 Запускаю ШІ-агента..."
+
+            default:
+                if let action = action, !action.isEmpty {
+                    statusText = "🔧 \(action)"
+                } else if !toolName.isEmpty {
+                    statusText = "🔧 Виконую: \(toolName)"
+                } else {
+                    statusText = "⚡️ Antigravity працює..."
+                }
+            }
+
+            Task { @MainActor in
+                AppState.shared.showStatus(statusText, autoDismissAfter: 12.0)
+            }
+            return
+        }
+
+        // 5. PostToolUse - Tool completion feedback
+        if type == "PostToolUse" {
+            Task { @MainActor in
+                if case .status = AppState.shared.state {
+                    AppState.shared.showStatus("✅ Готово", autoDismissAfter: 1.2)
+                }
+            }
+            return
+        }
+
+        // 6. PreInvocation - Agent thinking / preparing
         if type == "PreInvocation" {
             Task { @MainActor in
-                AppState.shared.showStatus("Antigravity працює...")
+                if case .question = AppState.shared.state { return }
+                AppState.shared.showStatus("💭 Думаю...", autoDismissAfter: 6.0)
+            }
+            return
+        }
+
+        // 7. PostInvocation - Agent finished turn
+        if type == "PostInvocation" {
+            Task { @MainActor in
+                if case .status = AppState.shared.state {
+                    AppState.shared.scheduleCloseStatus(delay: 1.2)
+                }
             }
             return
         }

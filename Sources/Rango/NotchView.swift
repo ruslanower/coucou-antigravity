@@ -27,7 +27,8 @@ public struct NotchView: View {
                     )
             case .status(let message):
                 NotchStatusPillView(message: message)
-                    .frame(width: 320, height: 34)
+                    .frame(minWidth: 220, maxWidth: 350)
+                    .frame(height: 30)
                     .padding(.top, 2)
                     .transition(.move(edge: .top).combined(with: .opacity))
             case .question(let question):
@@ -116,21 +117,37 @@ struct NotchStatusPillView: View {
     var body: some View {
         HStack(spacing: 8) {
             RangoAvatarView(size: 20)
+                .frame(width: 24, height: 22)
+
             Text(message)
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundColor(.white)
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .foregroundColor(.white.opacity(0.95))
                 .lineLimit(1)
+
             Spacer()
+
+            Circle()
+                .fill(Color.green)
+                .frame(width: 5, height: 5)
+                .shadow(color: Color.green.opacity(0.8), radius: 2)
         }
-        .padding(.horizontal, 12)
-        .frame(maxHeight: .infinity)
+        .padding(.horizontal, 11)
+        .frame(height: 30)
         .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color.black.opacity(0.92))
+            Capsule(style: .continuous)
+                .fill(Color.black.opacity(0.96))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(Color.white.opacity(0.12), lineWidth: 0.8)
+                    Capsule(style: .continuous)
+                        .stroke(
+                            LinearGradient(
+                                colors: [Color.green.opacity(0.6), Color.teal.opacity(0.3), Color.white.opacity(0.15)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
                 )
+                .shadow(color: Color.black.opacity(0.45), radius: 6, y: 2)
         )
     }
 }
@@ -454,6 +471,16 @@ struct NotchQuestionCardView: View {
                         .lineLimit(2)
                 }
                 Spacer()
+
+                Button(action: {
+                    AppState.shared.close()
+                }) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.white.opacity(0.45))
+                        .padding(5)
+                }
+                .buttonStyle(.plain)
             }
 
             VStack(spacing: 6) {

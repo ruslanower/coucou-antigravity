@@ -171,6 +171,20 @@ final class AppState: ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + autoDismissAfter, execute: work)
     }
 
+    func scheduleCloseStatus(delay: Double = 1.0) {
+        statusResetWorkItem?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            guard let self = self else { return }
+            if case .status = self.state {
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.78)) {
+                    self.state = .idle
+                }
+            }
+        }
+        statusResetWorkItem = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
+    }
+
     func close() {
         statusResetWorkItem?.cancel()
         questionTimeoutWorkItem?.cancel()

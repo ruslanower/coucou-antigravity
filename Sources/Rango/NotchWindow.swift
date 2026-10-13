@@ -93,7 +93,7 @@ final class NotchContainerView: NSView {
             return inQuestionZone ? view : nil
 
         case .status:
-            let inStatusZone = point.y >= (topY - 38) && centerDist <= 140
+            let inStatusZone = point.y >= (topY - 38) && centerDist <= 185
             return inStatusZone ? view : nil
         }
     }

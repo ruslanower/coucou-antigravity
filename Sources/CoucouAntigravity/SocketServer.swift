@@ -133,7 +133,7 @@ final class SocketServer {
         }
 
         // 2. Close / Dismiss
-        if type == "close" || type == "dismiss" || type == "PostToolUse" || type == "Stop" {
+        if type == "close" || type == "dismiss" || type == "Stop" || (type == "PostToolUse" && toolName == "ask_question") {
             Task { @MainActor in
                 AppState.shared.close()
             }
@@ -164,21 +164,30 @@ final class SocketServer {
         }
 
         // tool_input format
-        if let toolInput = obj["tool_input"] as? [String: Any],
-           let rawQuestions = toolInput["questions"] as? [[String: Any]],
-           let firstQ = rawQuestions.first {
-            let qText = firstQ["question"] as? String ?? ""
-            var options: [String] = []
-            if let rawOpts = firstQ["options"] as? [Any] {
-                for item in rawOpts {
-                    if let s = item as? String {
-                        options.append(s)
-                    } else if let d = item as? [String: Any], let label = d["label"] as? String {
-                        options.append(label)
+        if let toolInput = obj["tool_input"] as? [String: Any] {
+            var rawQuestions: [[String: Any]] = []
+            if let list = toolInput["questions"] as? [[String: Any]] {
+                rawQuestions = list
+            } else if let jsonStr = toolInput["questions"] as? String,
+                      let strData = jsonStr.data(using: .utf8),
+                      let parsed = (try? JSONSerialization.jsonObject(with: strData)) as? [[String: Any]] {
+                rawQuestions = parsed
+            }
+
+            if let firstQ = rawQuestions.first {
+                let qText = firstQ["question"] as? String ?? ""
+                var options: [String] = []
+                if let rawOpts = firstQ["options"] as? [Any] {
+                    for item in rawOpts {
+                        if let s = item as? String {
+                            options.append(s)
+                        } else if let d = item as? [String: Any], let label = d["label"] as? String {
+                            options.append(label)
+                        }
                     }
                 }
+                return (qText, options)
             }
-            return (qText, options)
         }
 
         return ("", [])

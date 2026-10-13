@@ -45,6 +45,7 @@ echo "📦 Створення бандла ${APP_PATH}..."
 pkill -9 CoucouAntigravity 2>/dev/null || true
 pkill -9 Coucou 2>/dev/null || true
 rm -rf "$APP_PATH"
+rm -rf "/Applications/Coucou.app" 2>/dev/null || true
 
 mkdir -p "${APP_PATH}/Contents/MacOS"
 mkdir -p "${APP_PATH}/Contents/Resources"
@@ -76,16 +77,23 @@ cat << 'EOF' > "${APP_PATH}/Contents/Info.plist"
     <key>CFBundleVersion</key>
     <string>1</string>
     <key>LSMinimumSystemVersion</key>
-    <string>12.0</string>
+    <string>15.0</string>
+    <key>DTSDKName</key>
+    <string>macosx27.0</string>
+    <key>DTPlatformVersion</key>
+    <string>27.0</string>
     <key>LSUIElement</key>
     <true/>
     <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>NSSupportsAutomaticGraphicsSwitching</key>
     <true/>
 </dict>
 </plist>
 EOF
 
 xattr -cr "$APP_PATH" 2>/dev/null || true
+codesign -s - --force --deep "$APP_PATH" 2>/dev/null || true
 
 # 3. Налаштування хуків Antigravity
 echo "⚙️  Встановлення скриптів мосту..."

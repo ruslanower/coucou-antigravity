@@ -1,7 +1,7 @@
 {
-  "version": "1.0.2",
-  "build": 3,
+  "version": "1.0.3",
+  "build": 4,
   "commit": "HEAD",
-  "releaseNotes": "Жива телеметрія інструментів Antigravity у чілці, покращені інтерактивні запитання та швидкий вихід",
+  "releaseNotes": "Підтримка спливаючих сповіщень месенджерів (Telegram, WhatsApp) у чілці та налаштування синхронізації зі смартфоном",
   "downloadUrl": "https://github.com/ruslanower/rango/releases/latest/download/Rango.zip"
 }

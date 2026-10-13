@@ -6,17 +6,25 @@ struct QuestionModel: Equatable {
     let options: [String]
 }
 
+struct PhoneNotificationModel: Equatable {
+    let app: String
+    let icon: String
+    let sender: String
+    let message: String
+}
+
 enum NotchState: Equatable {
     case idle
     case hoverDrawer
     case status(String)
     case question(QuestionModel)
+    case notification(PhoneNotificationModel)
 
     var isExpanded: Bool {
         switch self {
         case .idle:
             return false
-        case .hoverDrawer, .status, .question:
+        case .hoverDrawer, .status, .question, .notification:
             return true
         }
     }
@@ -183,6 +191,26 @@ final class AppState: ObservableObject {
         }
         statusResetWorkItem = work
         DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
+    }
+
+    func showPhoneNotification(app: String, icon: String, sender: String, message: String, autoDismissAfter: Double = 5.5) {
+        if case .question = self.state { return } // Do not overwrite active question
+        statusResetWorkItem?.cancel()
+        let model = PhoneNotificationModel(app: app, icon: icon, sender: sender, message: message)
+        withAnimation(.spring(response: 0.38, dampingFraction: 0.78)) {
+            self.state = .notification(model)
+        }
+        SoundEffect.shared.play("pop")
+        let work = DispatchWorkItem { [weak self] in
+            guard let self = self else { return }
+            if case .notification = self.state {
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.78)) {
+                    self.state = .idle
+                }
+            }
+        }
+        statusResetWorkItem = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + autoDismissAfter, execute: work)
     }
 
     func close() {

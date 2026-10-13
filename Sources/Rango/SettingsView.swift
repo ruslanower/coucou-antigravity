@@ -354,11 +354,84 @@ struct NotificationsSettingsTab: View {
                     .padding(8)
                 }
 
-                GroupBox(label: Label("Синхронізація зі смартфоном", systemImage: "iphone")) {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Для виведення сповіщень з телефона переконайтеся, що на вашому Mac увімкнено дублювання сповіщень iPhone (macOS Sequoia) або встановлено нативні додатки месенджерів.")
+                GroupBox(label: Label("Тестування сповіщень у чілці", systemImage: "sparkles")) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Перевірте, як виглядають спливаючі повідомлення з телефону в чілці:")
                             .font(.system(size: 11))
                             .foregroundColor(.secondary)
+
+                        HStack(spacing: 10) {
+                            Button(action: {
+                                appState.showPhoneNotification(
+                                    app: "Telegram",
+                                    icon: "✈️",
+                                    sender: "Олена",
+                                    message: "Привіт! Зустріч підтверджено на 15:00."
+                                )
+                            }) {
+                                HStack(spacing: 5) {
+                                    Text("✈️")
+                                    Text("Тест Telegram")
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.blue)
+                            .controlSize(.small)
+
+                            Button(action: {
+                                appState.showPhoneNotification(
+                                    app: "WhatsApp",
+                                    icon: "💬",
+                                    sender: "Андрій",
+                                    message: "Файли проєкту надіслав, глянь коли буде час."
+                                )
+                            }) {
+                                HStack(spacing: 5) {
+                                    Text("💬")
+                                    Text("Тест WhatsApp")
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.green)
+                            .controlSize(.small)
+                        }
+                    }
+                    .padding(8)
+                }
+
+                GroupBox(label: Label("Як увімкнути сповіщення зі смартфона", systemImage: "iphone")) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Чому сповіщення можуть не надходити:")
+                            .font(.system(size: 11.5, weight: .semibold))
+
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack(alignment: .top, spacing: 6) {
+                                Text("1.")
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundColor(.purple)
+                                Text("На iPhone: відкрийте **Параметри → Сповіщення → Дублювання iPhone** та увімкніть Telegram / WhatsApp.")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                            }
+
+                            HStack(alignment: .top, spacing: 6) {
+                                Text("2.")
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundColor(.purple)
+                                Text("На Mac (macOS Sequoia): відкрийте **Системні параметри → Сповіщення** і переконайтеся, що опція **«Дозволити сповіщення з iPhone»** увімкнена.")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                            }
+
+                            HStack(alignment: .top, spacing: 6) {
+                                Text("3.")
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundColor(.purple)
+                                Text("Для нативних клієнтів: встановіть Telegram / WhatsApp для Mac з App Store або офіційних сайтів.")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                            }
+                        }
                     }
                     .padding(8)
                 }

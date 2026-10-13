@@ -41,6 +41,16 @@ public struct NotchView: View {
                     insertion: .move(edge: .top).combined(with: .opacity),
                     removal: .move(edge: .top).combined(with: .opacity)
                 ))
+            case .notification(let notif):
+                NotchNotificationCardView(notif: notif) {
+                    appState.close()
+                }
+                .frame(width: 360)
+                .padding(.top, 4)
+                .transition(.asymmetric(
+                    insertion: .move(edge: .top).combined(with: .opacity),
+                    removal: .move(edge: .top).combined(with: .opacity)
+                ))
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -525,6 +535,79 @@ struct NotchQuestionCardView: View {
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
                         .stroke(Color.green.opacity(0.3), lineWidth: 1)
                 )
+        )
+    }
+}
+
+// MARK: - 4. Картка сповіщення зі смартфона (Phone / Messenger Notification)
+struct NotchNotificationCardView: View {
+    let notif: PhoneNotificationModel
+    let onClose: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(Color.white.opacity(0.12))
+                    .frame(width: 36, height: 36)
+
+                Text(notif.icon)
+                    .font(.system(size: 18))
+            }
+
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 6) {
+                    Text(notif.app)
+                        .font(.system(size: 10, weight: .bold, design: .rounded))
+                        .foregroundColor(.green)
+
+                    Text("•")
+                        .font(.system(size: 9))
+                        .foregroundColor(.white.opacity(0.4))
+
+                    Text("Зараз")
+                        .font(.system(size: 9))
+                        .foregroundColor(.white.opacity(0.5))
+
+                    Spacer()
+
+                    Button(action: onClose) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundColor(.white.opacity(0.45))
+                            .padding(4)
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                Text(notif.sender)
+                    .font(.system(size: 11.5, weight: .bold))
+                    .foregroundColor(.white)
+                    .lineLimit(1)
+
+                Text(notif.message)
+                    .font(.system(size: 10.5))
+                    .foregroundColor(.white.opacity(0.85))
+                    .lineLimit(2)
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(Color(red: 0.08, green: 0.08, blue: 0.1).opacity(0.96))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .stroke(
+                            LinearGradient(
+                                colors: [Color.green.opacity(0.6), Color.teal.opacity(0.3), Color.white.opacity(0.15)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
+                .shadow(color: Color.black.opacity(0.55), radius: 14, y: 4)
         )
     }
 }

@@ -156,6 +156,18 @@ final class SocketServer {
             return
         }
 
+        // 3.1 Phone / Messenger notification
+        if type == "phone_notification" || type == "notification" {
+            let app = (obj["app"] as? String) ?? "Telegram"
+            let icon = (obj["icon"] as? String) ?? "💬"
+            let sender = (obj["sender"] as? String) ?? (obj["title"] as? String ?? "Нове сповіщення")
+            let message = (obj["text"] as? String) ?? (obj["message"] as? String ?? "")
+            Task { @MainActor in
+                AppState.shared.showPhoneNotification(app: app, icon: icon, sender: sender, message: message)
+            }
+            return
+        }
+
         // 4. PreToolUse - Live telemetry of active Antigravity tools
         if type == "PreToolUse" {
             let toolInput = obj["tool_input"] as? [String: Any]

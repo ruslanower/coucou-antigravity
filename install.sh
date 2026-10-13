@@ -69,6 +69,7 @@ chmod +x "$SUPPORT_DIR/nb-hook" "$SUPPORT_DIR/nb-hook.py"
 echo "🛠  Активація віджета Antigravity та показу карток у чілці..."
 defaults write fr.louisraille.NotchBuddy terminalCardsEnabled -bool true
 defaults write fr.louisraille.NotchBuddy mainPill -string "agent_antigravity"
+defaults write fr.louisraille.NotchBuddy autoCloseInterval -int 60
 
 python3 - << 'PYEOF'
 import plistlib, os, json

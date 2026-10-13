@@ -84,17 +84,20 @@ try:
 
                 key_num = str(idx + 1)
                 osa = f'''
+tell application "Antigravity" to activate
+delay 0.2
 tell application "System Events"
-    if exists (process "Antigravity") then
-        tell process "Antigravity" to set frontmost to true
-        delay 0.15
-        keystroke "{key_num}"
-        delay 0.1
-        key code 36 -- Return
-    end if
+    keystroke "{key_num}"
+    delay 0.15
+    key code 36
 end tell
 '''
-                subprocess.run(["osascript", "-e", osa])
+                res = subprocess.run(["osascript", "-e", osa], capture_output=True, text=True)
+                try:
+                    with open("/tmp/coucou_osa.log", "w") as f:
+                        f.write(f"Key: {key_num}\\nStdout: {res.stdout}\\nStderr: {res.stderr}\\nReturnCode: {res.returncode}\\n")
+                except Exception:
+                    pass
         except Exception as err:
             with open("/tmp/coucou_osa_error.log", "w") as f:
                 f.write(str(err))

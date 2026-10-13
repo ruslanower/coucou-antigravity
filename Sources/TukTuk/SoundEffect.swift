@@ -1,6 +1,7 @@
 import AppKit
 import Foundation
 
+@MainActor
 final class SoundEffect {
     static let shared = SoundEffect()
     private var sounds: [String: NSSound] = [:]
@@ -13,6 +14,7 @@ final class SoundEffect {
         let possibleDirs = [
             Bundle.main.resourcePath.map { $0 + "/sounds" },
             Bundle.main.resourcePath,
+            "/Applications/TukTuk.app/Contents/Resources/sounds",
             "/Applications/CoucouAntigravity.app/Contents/Resources/sounds",
             NSString("~/Library/Application Support/NotchBuddy/sounds").expandingTildeInPath,
             NSString("~/.coucou-antigravity/sounds").expandingTildeInPath
@@ -33,12 +35,16 @@ final class SoundEffect {
     }
 
     func play(_ name: String) {
+        guard AppState.shared.soundEnabled else { return }
+        let volume = Float(AppState.shared.soundVolume)
+
         if let sound = sounds[name] {
+            sound.volume = volume
             sound.stop()
             sound.play()
-        } else {
-            // Fallback system beep / sound
-            NSSound(named: "Pop")?.play()
+        } else if let fallback = NSSound(named: "Pop") {
+            fallback.volume = volume
+            fallback.play()
         }
     }
 

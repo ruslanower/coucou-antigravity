@@ -28,18 +28,74 @@ final class NotchWindow: NSPanel {
 }
 
 final class NotchContainerView: NSView {
+    private var trackingAreaRef: NSTrackingArea?
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        if let existing = trackingAreaRef {
+            removeTrackingArea(existing)
+        }
+        let options: NSTrackingArea.Options = [.mouseEnteredAndExited, .mouseMoved, .activeAlways, .inVisibleRect]
+        let area = NSTrackingArea(rect: bounds, options: options, owner: self, userInfo: nil)
+        addTrackingArea(area)
+        self.trackingAreaRef = area
+    }
+
+    override func mouseMoved(with event: NSEvent) {
+        let point = convert(event.locationInWindow, from: nil)
+        let state = AppState.shared.state
+        let topY = self.frame.height
+        let centerDist = abs(point.x - (self.frame.width / 2))
+
+        switch state {
+        case .idle:
+            let inNotchZone = point.y >= (topY - 36) && centerDist <= 110
+            if inNotchZone {
+                AppState.shared.openHoverDrawer()
+            }
+
+        case .hoverDrawer:
+            let inDrawerZone = point.y >= (topY - 130) && centerDist <= 255
+            if inDrawerZone {
+                AppState.shared.cancelScheduledCloseHover()
+            } else {
+                AppState.shared.scheduleCloseHoverDrawer()
+            }
+
+        default:
+            break
+        }
+    }
+
+    override func mouseExited(with event: NSEvent) {
+        if AppState.shared.state == .hoverDrawer {
+            AppState.shared.scheduleCloseHoverDrawer()
+        }
+    }
+
     override func hitTest(_ point: NSPoint) -> NSView? {
         let view = super.hitTest(point)
-        // If idle, pass clicks through unless clicking directly on either wing
-        if AppState.shared.state == .idle {
-            let topY = self.frame.height
-            let inMenuY = point.y >= (topY - 32)
-            guard inMenuY else { return nil }
-            let centerDist = abs(point.x - (self.frame.width / 2))
-            let inWings = centerDist >= 118 && centerDist <= 230
-            return inWings ? view : nil
+        let state = AppState.shared.state
+        let topY = self.frame.height
+        let centerDist = abs(point.x - (self.frame.width / 2))
+
+        switch state {
+        case .idle:
+            let inNotchZone = point.y >= (topY - 36) && centerDist <= 110
+            return inNotchZone ? view : nil
+
+        case .hoverDrawer:
+            let inDrawerZone = point.y >= (topY - 130) && centerDist <= 255
+            return inDrawerZone ? view : nil
+
+        case .question:
+            let inQuestionZone = point.y >= (topY - 390) && centerDist <= 255
+            return inQuestionZone ? view : nil
+
+        case .status:
+            let inStatusZone = point.y >= (topY - 38) && centerDist <= 140
+            return inStatusZone ? view : nil
         }
-        return view
     }
 }
 
@@ -91,6 +147,6 @@ final class NotchWindowController: ObservableObject {
             }
             .store(in: &cancellables)
 
-        NSLog("[CoucouAntigravity] NotchWindowController initialized on screen: %@ frame: %@", screen.localizedName, NSStringFromRect(rect))
+        NSLog("[TukTuk] NotchWindowController initialized on screen: %@ frame: %@", screen.localizedName, NSStringFromRect(rect))
     }
 }

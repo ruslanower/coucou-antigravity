@@ -2,21 +2,20 @@
 import PackageDescription
 
 let package = Package(
-    name: "CoucouAntigravity",
+    name: "TukTuk",
     platforms: [
         .macOS(.v14)
     ],
     products: [
         .executable(
-            name: "CoucouAntigravity",
-            targets: ["CoucouAntigravity"]
+            name: "TukTuk",
+            targets: ["TukTuk"]
         )
     ],
     targets: [
         .executableTarget(
-            name: "CoucouAntigravity",
-            path: "Sources/CoucouAntigravity",
-            exclude: ["Resources"]
+            name: "TukTuk",
+            path: "Sources/TukTuk"
         )
     ]
 )

@@ -2,12 +2,12 @@
 set -e
 
 # ========================================================
-#   CoucouAntigravity — Native Notch Companion Installer
-#   Repository: https://github.com/ruslanower/coucou-antigravity
+#   «Тук-тук» (TukTuk) — Нативний помічник чілки для Antigravity
+#   Репозиторій: https://github.com/ruslanower/coucou-antigravity
 # ========================================================
 
 echo "========================================================"
-echo "    CoucouAntigravity — Встановлення нативного помічника "
+echo "    «Тук-тук» (TukTuk) — Встановлення нативного помічника"
 echo "========================================================"
 
 if [ "$(uname)" != "Darwin" ]; then
@@ -22,12 +22,12 @@ fi
 
 SUPPORT_DIR="$HOME/Library/Application Support/NotchBuddy"
 CONFIG_DIR="$HOME/.gemini/config"
-APP_PATH="/Applications/CoucouAntigravity.app"
+APP_PATH="/Applications/TukTuk.app"
 REPO_RAW="https://raw.githubusercontent.com/ruslanower/coucou-antigravity/main"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd || echo "")"
 
-# 1. Збірка або завантаження CoucouAntigravity
-echo "🛠  Збірка нативного Swift/SwiftUI додатку..."
+# 1. Збірка нативного Swift/SwiftUI додатку
+echo "🛠  Збірка нативного Swift додатку «Тук-тук»..."
 BUILD_DIR="${SCRIPT_DIR}"
 
 if [ ! -f "${BUILD_DIR}/Package.swift" ]; then
@@ -42,14 +42,16 @@ swift build -c release
 
 # 2. Формування .app бандла
 echo "📦 Створення бандла ${APP_PATH}..."
+pkill -9 TukTuk 2>/dev/null || true
 pkill -9 CoucouAntigravity 2>/dev/null || true
 pkill -9 Coucou 2>/dev/null || true
 rm -rf "$APP_PATH"
+rm -rf "/Applications/CoucouAntigravity.app" 2>/dev/null || true
 rm -rf "/Applications/Coucou.app" 2>/dev/null || true
 
 mkdir -p "${APP_PATH}/Contents/MacOS"
 mkdir -p "${APP_PATH}/Contents/Resources"
-cp "${BUILD_DIR}/.build/release/CoucouAntigravity" "${APP_PATH}/Contents/MacOS/"
+cp "${BUILD_DIR}/.build/release/TukTuk" "${APP_PATH}/Contents/MacOS/"
 
 if [ -d "${BUILD_DIR}/Resources" ]; then
     cp -r "${BUILD_DIR}/Resources/"* "${APP_PATH}/Contents/Resources/" 2>/dev/null || true
@@ -61,13 +63,13 @@ cat << 'EOF' > "${APP_PATH}/Contents/Info.plist"
 <plist version="1.0">
 <dict>
     <key>CFBundleIdentifier</key>
-    <string>com.ruslanower.CoucouAntigravity</string>
+    <string>com.ruslanower.TukTuk</string>
     <key>CFBundleName</key>
-    <string>CoucouAntigravity</string>
+    <string>TukTuk</string>
     <key>CFBundleDisplayName</key>
-    <string>Coucou Antigravity</string>
+    <string>Тук-тук</string>
     <key>CFBundleExecutable</key>
-    <string>CoucouAntigravity</string>
+    <string>TukTuk</string>
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
     <key>CFBundlePackageType</key>
@@ -117,18 +119,16 @@ else
     curl -sSL -o "$CONFIG_DIR/hooks.json" "${REPO_RAW}/hooks.json"
 fi
 
-# 4. Запуск CoucouAntigravity
-echo "🚀 Запуск CoucouAntigravity..."
-nohup "$APP_PATH/Contents/MacOS/CoucouAntigravity" > /tmp/coucou_antigravity.log 2>&1 &
+# 4. Запуск «Тук-тук»
+echo "🚀 Запуск «Тук-тук»..."
+nohup "$APP_PATH/Contents/MacOS/TukTuk" > /tmp/tuktuk.log 2>&1 &
 sleep 1
 
-echo "🔐 Перевірка дозволів Спеціальних можливостей (Accessibility)..."
-open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility" 2>/dev/null || true
-
 echo ""
-echo "🎉 ВСТАНОВЛЕННЯ УСПІШНО ЗАВЕРШЕНО!"
+echo "🎉 ВСТАНОВЛЕННЯ «ТУК-ТУК» УСПІШНО ЗАВЕРШЕНО!"
 echo "--------------------------------------------------------"
-echo "1. CoucouAntigravity тепер живе у вашій чілці та панелі меню."
-echo "2. Усі запитання Antigravity одночасно зʼявляються і в чілці, і у вікні."
-echo "3. Клік по варіанту в чілці автоматично вибирає і підтверджує його в чаті!"
+echo "1. «Тук-тук» тепер живе у вашій чілці та панелі меню."
+echo "2. Наведіть курсор на чілку — виїде плавна шторка з налаштуваннями."
+echo "3. Усі запитання Antigravity одночасно зʼявляються і в чілці, і в чаті."
+echo "4. Клік по варіанту в чілці миттєво підтверджує його в Antigravity!"
 echo "--------------------------------------------------------"

@@ -2,7 +2,7 @@ import SwiftUI
 import AppKit
 
 @main
-struct CoucouAntigravityApp: App {
+struct TukTukApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {
@@ -20,21 +20,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         setupStatusItem()
         SocketServer.shared.start()
         NotchWindowController.shared.setup()
-        NSLog("[CoucouAntigravity] Launched successfully via SwiftUI!")
+        NSLog("[TukTuk] Launched successfully via SwiftUI!")
     }
 
     private func setupStatusItem() {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         if let button = item.button {
             button.title = "🔮"
-            button.toolTip = "Coucou Antigravity Companion"
+            button.toolTip = "«Тук-тук» — Antigravity Помічник"
         }
 
         let menu = NSMenu()
-        menu.addItem(NSMenuItem(title: "Coucou Antigravity (Активний)", action: nil, keyEquivalent: ""))
+        menu.addItem(NSMenuItem(title: "Тук-тук v1.0.0 (Активний)", action: nil, keyEquivalent: ""))
         menu.addItem(NSMenuItem.separator())
 
-        let testItem = NSMenuItem(title: "Тестовий запит у чілку...", action: #selector(testQuestion), keyEquivalent: "t")
+        let settingsItem = NSMenuItem(title: "Налаштування...", action: #selector(openSettings), keyEquivalent: ",")
+        settingsItem.target = self
+        menu.addItem(settingsItem)
+
+        let testItem = NSMenuItem(title: "Тестовий запит у чілку", action: #selector(testQuestion), keyEquivalent: "t")
         testItem.target = self
         menu.addItem(testItem)
 
@@ -51,12 +55,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.statusItem = item
     }
 
+    @objc private func openSettings() {
+        Task { @MainActor in
+            SettingsWindowController.shared.show()
+        }
+    }
+
     @objc private func testQuestion() {
         Task { @MainActor in
             AppState.shared.showQuestion(
-                question: "Тестовий запит: чи все зручно працює в чілці?",
+                question: "Тестовий запит: чи все зручно працює в чілці «Тук-тук»?",
                 options: [
-                    "(Рекомендовано) Так, все супер!",
+                    "(Рекомендовано) Так, все працює ідеально!",
                     "Варіант 2: Перевірка звʼязку",
                     "Варіант 3: Тест кнопки"
                 ]

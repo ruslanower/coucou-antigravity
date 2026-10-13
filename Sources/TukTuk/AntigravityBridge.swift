@@ -18,7 +18,7 @@ end tell
                 var errorDict: NSDictionary?
                 appleScript.executeAndReturnError(&errorDict)
                 if let error = errorDict {
-                    NSLog("[CoucouAntigravity] AppleScript error: %@", error)
+                    NSLog("[TukTuk] AppleScript error: %@", error)
                 }
             }
         }

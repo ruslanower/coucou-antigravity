@@ -1,5 +1,6 @@
 import AppKit
 import Foundation
+import CoreGraphics
 
 enum AntigravityBridge {
     static let appPath = "/Applications/Antigravity.app"
@@ -45,6 +46,34 @@ end tell
         }
     }
 
+    static func getAntigravityWindowBounds() -> CGRect? {
+        guard let windowList = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] else {
+            return nil
+        }
+        for win in windowList {
+            let owner = win[kCGWindowOwnerName as String] as? String ?? ""
+            if owner == "Antigravity" {
+                if let boundsDict = win[kCGWindowBounds as String] as? [String: Any],
+                   let x = boundsDict["X"] as? CGFloat,
+                   let y = boundsDict["Y"] as? CGFloat,
+                   let w = boundsDict["Width"] as? CGFloat,
+                   let h = boundsDict["Height"] as? CGFloat,
+                   w > 400 && h > 300 {
+                    return CGRect(x: x, y: y, width: w, height: h)
+                }
+            }
+        }
+        return nil
+    }
+
+    static func simulateClick(at point: CGPoint) {
+        let down = CGEvent(mouseEventSource: nil, mouseType: .leftMouseDown, mouseCursorPosition: point, mouseButton: .left)
+        let up = CGEvent(mouseEventSource: nil, mouseType: .leftMouseUp, mouseCursorPosition: point, mouseButton: .left)
+        down?.post(tap: .cghidEventTap)
+        usleep(40000)
+        up?.post(tap: .cghidEventTap)
+    }
+
     static func launchIdeaInAntigravity(idea: StartupIdea) {
         let prompt = """
 Привіт! Почнімо роботу над новим мобільним застосунком: «\(idea.title)».
@@ -68,31 +97,86 @@ end tell
         let isRunning = NSWorkspace.shared.runningApplications.contains(where: {
             $0.bundleIdentifier == "com.google.antigravity" || $0.localizedName == "Antigravity"
         })
-        let delayBeforePaste = isRunning ? 0.35 : 1.8
 
         focusAntigravity {
-            DispatchQueue.main.asyncAfter(deadline: .now() + delayBeforePaste) {
-                let scriptSource = """
+            waitForWindow(maxAttempts: isRunning ? 8 : 16, delay: 0.2) { bounds in
+                guard let bounds = bounds else {
+                    fallbackPasteAndSend()
+                    return
+                }
+
+                // 1. Клік на кнопку "+ New Conversation" (зверху зліва сайдбару)
+                let newConvPoint = CGPoint(x: bounds.origin.x + 90, y: bounds.origin.y + 70)
+                simulateClick(at: newConvPoint)
+
+                // 2. Очікуємо перемикання на нову розмову
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                    // 3. Клік у центр поля введення нового діалогу
+                    let inputPoint = CGPoint(x: bounds.origin.x + bounds.width * 0.5, y: bounds.origin.y + 380)
+                    simulateClick(at: inputPoint)
+
+                    // 4. Додатково фокусуємо через Cmd+L та вставляємо промпт
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                        let script = """
 tell application "System Events"
     launch
     try
         set frontmost of (first process whose name is "Antigravity") to true
     end try
-    delay 0.25
-    try
-        click menu item "New Conversation" of menu "File" of menu bar 1 of (first process whose name is "Antigravity")
-    on error
-        keystroke "n" using command down
-    end try
-    delay 0.45
+    delay 0.1
+    keystroke "l" using command down
+    delay 0.15
     keystroke "v" using command down
     delay 0.25
+    keystroke return using command down
+    delay 0.15
     key code 36
 end tell
 """
-                runAppleScript(scriptSource)
+                        runAppleScript(script)
+                    }
+                }
             }
         }
+    }
+
+    private static func waitForWindow(maxAttempts: Int, delay: Double, completion: @escaping (CGRect?) -> Void) {
+        var attempts = 0
+        func check() {
+            if let bounds = getAntigravityWindowBounds() {
+                completion(bounds)
+                return
+            }
+            attempts += 1
+            if attempts < maxAttempts {
+                DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                    check()
+                }
+            } else {
+                completion(nil)
+            }
+        }
+        check()
+    }
+
+    private static func fallbackPasteAndSend() {
+        let scriptSource = """
+tell application "System Events"
+    launch
+    try
+        set frontmost of (first process whose name is "Antigravity") to true
+    end try
+    delay 0.2
+    keystroke "l" using command down
+    delay 0.15
+    keystroke "v" using command down
+    delay 0.25
+    keystroke return using command down
+    delay 0.15
+    key code 36
+end tell
+"""
+        runAppleScript(scriptSource)
     }
 
     private static func runAppleScript(_ source: String) {

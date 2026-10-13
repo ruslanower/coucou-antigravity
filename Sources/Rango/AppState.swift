@@ -114,6 +114,7 @@ final class AppState: ObservableObject {
     func openHoverDrawer() {
         guard hoverExpandEnabled else { return }
         hoverCloseWorkItem?.cancel()
+        statusResetWorkItem?.cancel()
         if case .question = state { return }
         withAnimation(.spring(response: 0.35, dampingFraction: 0.78)) {
             self.state = .hoverDrawer
@@ -167,6 +168,9 @@ final class AppState: ObservableObject {
         statusResetWorkItem?.cancel()
         if case .question = self.state {
             return // Do not overwrite an active interactive question
+        }
+        if case .hoverDrawer = self.state {
+            return // Do not close or interrupt the drawer if user is currently interacting with it
         }
         withAnimation(.spring(response: 0.35, dampingFraction: 0.78)) {
             self.state = .status(text)

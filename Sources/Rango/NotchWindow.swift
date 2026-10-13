@@ -54,6 +54,18 @@ final class NotchContainerView: NSView {
                 AppState.shared.openHoverDrawer()
             }
 
+        case .status:
+            let inStatusZone = point.y >= (topY - 38) && centerDist <= 185
+            if inStatusZone {
+                AppState.shared.openHoverDrawer()
+            }
+
+        case .notification:
+            let inNotifZone = point.y >= (topY - 90) && centerDist <= 195
+            if inNotifZone {
+                AppState.shared.cancelScheduledCloseHover()
+            }
+
         case .hoverDrawer:
             let inDrawerZone = point.y >= (topY - 175) && centerDist <= 260
             if inDrawerZone {

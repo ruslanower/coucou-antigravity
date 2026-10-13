@@ -122,7 +122,9 @@ struct NotchPillView: View {
 
 // MARK: - Статус-пілл
 struct NotchStatusPillView: View {
+    @ObservedObject var appState = AppState.shared
     let message: String
+    @State private var isHovered = false
 
     var body: some View {
         HStack(spacing: 8) {
@@ -159,6 +161,19 @@ struct NotchStatusPillView: View {
                 )
                 .shadow(color: Color.black.opacity(0.45), radius: 6, y: 2)
         )
+        .scaleEffect(isHovered ? 1.05 : 1.0)
+        .onHover { hovering in
+            withAnimation(.spring(response: 0.25, dampingFraction: 0.75)) {
+                isHovered = hovering
+            }
+            if hovering {
+                appState.openHoverDrawer()
+            }
+        }
+        .onTapGesture {
+            appState.openHoverDrawer()
+            SoundEffect.shared.play("greet")
+        }
     }
 }
 

@@ -5,6 +5,16 @@ enum AntigravityBridge {
     static let bundleId = "com.google.antigravity"
     static let appPath = "/Applications/Antigravity.app"
 
+    static func checkAndPromptAccessibility() {
+        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+        let isTrusted = AXIsProcessTrustedWithOptions(options)
+        if !isTrusted {
+            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+                NSWorkspace.shared.open(url)
+            }
+        }
+    }
+
     static func getRunningAntigravity() -> NSRunningApplication? {
         if let app = NSRunningApplication.runningApplications(withBundleIdentifier: bundleId).first {
             return app
@@ -75,6 +85,7 @@ end tell
     }
 
     static func launchIdeaInAntigravity(idea: StartupIdea) {
+        checkAndPromptAccessibility()
         let prompt = """
 Привіт! Почнімо роботу над новим мобільним застосунком: «\(idea.title)».
 

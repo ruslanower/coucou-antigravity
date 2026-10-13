@@ -18,9 +18,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
         setupStatusItem()
+        checkAccessibilityPermissions()
         SocketServer.shared.start()
         NotchWindowController.shared.setup()
         NSLog("[TukTuk] Launched successfully via SwiftUI!")
+    }
+
+    private func checkAccessibilityPermissions() {
+        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: false] as CFDictionary
+        let isTrusted = AXIsProcessTrustedWithOptions(options)
+        NSLog("[TukTuk] Accessibility status: %d", isTrusted ? 1 : 0)
     }
 
     private func setupStatusItem() {

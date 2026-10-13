@@ -30,11 +30,14 @@ final class NotchWindow: NSPanel {
 final class NotchContainerView: NSView {
     override func hitTest(_ point: NSPoint) -> NSView? {
         let view = super.hitTest(point)
-        // If idle, pass clicks through unless clicking directly on the notch wings
+        // If idle, pass clicks through unless clicking directly on either wing
         if AppState.shared.state == .idle {
             let topY = self.frame.height
-            let inPill = point.y >= (topY - AppState.shared.notchHeight) && abs(point.x - (self.frame.width / 2)) <= 150
-            return inPill ? view : nil
+            let inMenuY = point.y >= (topY - 32)
+            guard inMenuY else { return nil }
+            let centerDist = abs(point.x - (self.frame.width / 2))
+            let inWings = centerDist >= 118 && centerDist <= 230
+            return inWings ? view : nil
         }
         return view
     }

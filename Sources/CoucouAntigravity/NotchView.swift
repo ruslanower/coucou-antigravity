@@ -37,65 +37,88 @@ struct NotchView: View {
         }
     }
 
-    @State private var isHovered = false
+    @State private var isLeftHovered = false
+    @State private var isRightHovered = false
 
-    // MARK: - 1. Idle Notch Pill (Розширений у боки від шторки, без перекриття вікон знизу)
+    // MARK: - 1. Idle Notch Wings (Окремі елегантні бічні капсули без перекриття центру і вікон)
     private var idleNotchPill: some View {
         HStack(spacing: 0) {
             // Ліве крило: Mochi маскот
-            HStack(spacing: 6) {
+            HStack(spacing: 0) {
                 MochiFaceView(isBlinking: appState.isBlinking, mood: .happy)
-                    .frame(width: 26, height: 16)
+                    .frame(width: 30, height: 17)
             }
-            .frame(width: 48, height: appState.notchHeight)
-            .contentShape(Rectangle())
+            .frame(width: 52, height: 26)
+            .background(
+                Capsule(style: .continuous)
+                    .fill(Color.black.opacity(0.94))
+                    .overlay(
+                        Capsule(style: .continuous)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [Color.purple.opacity(0.6), Color.white.opacity(0.2)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
+                    )
+                    .shadow(color: Color.black.opacity(0.4), radius: 5, y: 1.5)
+            )
+            .scaleEffect(isLeftHovered ? 1.08 : 1.0)
+            .onHover { hovering in
+                withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
+                    isLeftHovered = hovering
+                }
+            }
             .onTapGesture {
                 SoundEffect.shared.play("greet")
             }
 
-            // Центральний проміжок під фізичну камеру та шторку
-            Spacer(minLength: 165)
+            // Повністю чистий простір по центру під фізичну камеру та шторку (240pt)
+            Spacer(minLength: 240)
 
             // Праве крило: статус Antigravity
-            HStack(spacing: 5) {
+            HStack(spacing: 6) {
                 Circle()
                     .fill(Color.purple)
                     .frame(width: 6, height: 6)
-                    .shadow(color: Color.purple.opacity(0.8), radius: 3)
+                    .shadow(color: Color.purple.opacity(0.9), radius: 3)
 
                 Text("Antigravity")
                     .font(.system(size: 11, weight: .semibold, design: .rounded))
-                    .foregroundColor(.white.opacity(0.88))
+                    .foregroundColor(.white.opacity(0.95))
             }
-            .frame(width: 86, height: appState.notchHeight)
-            .contentShape(Rectangle())
+            .padding(.horizontal, 10)
+            .frame(height: 26)
+            .background(
+                Capsule(style: .continuous)
+                    .fill(Color.black.opacity(0.94))
+                    .overlay(
+                        Capsule(style: .continuous)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [Color.white.opacity(0.2), Color.purple.opacity(0.6)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
+                    )
+                    .shadow(color: Color.black.opacity(0.4), radius: 5, y: 1.5)
+            )
+            .scaleEffect(isRightHovered ? 1.05 : 1.0)
+            .onHover { hovering in
+                withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
+                    isRightHovered = hovering
+                }
+            }
             .onTapGesture {
                 AntigravityBridge.focusAntigravity()
             }
         }
-        .padding(.horizontal, 8)
-        .frame(width: isHovered ? 295 : 280, height: appState.notchHeight)
-        .background(
-            Capsule(style: .continuous)
-                .fill(Color.black)
-                .overlay(
-                    Capsule(style: .continuous)
-                        .stroke(
-                            LinearGradient(
-                                colors: [Color.purple.opacity(0.4), Color.white.opacity(0.14), Color.purple.opacity(0.4)],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            ),
-                            lineWidth: 1
-                        )
-                )
-                .shadow(color: Color.black.opacity(0.4), radius: 6, x: 0, y: 2)
-        )
-        .onHover { hovering in
-            withAnimation(.spring(response: 0.28, dampingFraction: 0.72)) {
-                isHovered = hovering
-            }
-        }
+        .padding(.top, 3)
+        .frame(width: 440)
     }
 
     // MARK: - 2. Status Pill (У межах висоти меню)
@@ -103,25 +126,26 @@ struct NotchView: View {
         HStack(spacing: 8) {
             Circle()
                 .fill(Color.purple)
-                .frame(width: 7, height: 7)
-                .shadow(color: Color.purple.opacity(0.8), radius: 4)
+                .frame(width: 6, height: 6)
+                .shadow(color: Color.purple.opacity(0.9), radius: 4)
 
             Text(text)
-                .font(.system(size: 11.5, weight: .medium))
+                .font(.system(size: 11, weight: .medium))
                 .foregroundColor(.white)
                 .lineLimit(1)
         }
-        .padding(.horizontal, 16)
-        .frame(height: appState.notchHeight)
+        .padding(.horizontal, 14)
+        .frame(height: 26)
         .background(
             Capsule(style: .continuous)
-                .fill(Color.black.opacity(0.98))
+                .fill(Color.black.opacity(0.96))
                 .overlay(
                     Capsule(style: .continuous)
-                        .stroke(Color.purple.opacity(0.4), lineWidth: 1)
+                        .stroke(Color.purple.opacity(0.45), lineWidth: 1)
                 )
-                .shadow(color: Color.black.opacity(0.5), radius: 8, y: 2)
+                .shadow(color: Color.black.opacity(0.5), radius: 6, y: 1.5)
         )
+        .padding(.top, 3)
     }
 
     // MARK: - 3. Question Card

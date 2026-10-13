@@ -4,7 +4,6 @@ import AppKit
 // MARK: - Головний контейнер чілки (Rango Notch View)
 public struct NotchView: View {
     @ObservedObject var appState = AppState.shared
-    @State private var isHovering = false
     @State private var currentIdea: StartupIdea? = ProjectIdeaGenerator.shared.generateNextIdea()
 
     public init() {}
@@ -13,57 +12,52 @@ public struct NotchView: View {
         ZStack(alignment: .top) {
             switch appState.state {
             case .idle:
-                NotchPillView(appState: appState, isHovering: isHovering)
-                    .frame(width: 190, height: 32)
+                NotchPillView(appState: appState)
+                    .frame(width: 190, height: 30)
+                    .padding(.top, 2)
                     .transition(.opacity.combined(with: .scale(scale: 0.95)))
             case .hoverDrawer:
                 NotchDrawerView(appState: appState, currentIdea: $currentIdea)
-                    .frame(width: 480, height: 180)
+                    .frame(width: 490, height: 160)
                     .transition(
                         .asymmetric(
-                            insertion: .opacity.combined(with: .scale(scale: 0.96, anchor: .top)),
-                            removal: .opacity.combined(with: .scale(scale: 0.94, anchor: .top))
+                            insertion: .move(edge: .top).combined(with: .opacity),
+                            removal: .move(edge: .top).combined(with: .opacity)
                         )
                     )
             case .status(let message):
                 NotchStatusPillView(message: message)
                     .frame(width: 320, height: 34)
-                    .transition(.opacity)
+                    .padding(.top, 2)
+                    .transition(.move(edge: .top).combined(with: .opacity))
             case .question(let question):
                 NotchQuestionCardView(question: question) { index in
                     appState.selectOption(at: index)
                 }
                 .frame(width: 460)
+                .padding(.top, 4)
                 .transition(.asymmetric(
-                    insertion: .opacity.combined(with: .scale(scale: 0.96, anchor: .top)),
-                    removal: .opacity.combined(with: .scale(scale: 0.94, anchor: .top))
+                    insertion: .move(edge: .top).combined(with: .opacity),
+                    removal: .move(edge: .top).combined(with: .opacity)
                 ))
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding(.top, 0)
         .animation(.spring(response: 0.36, dampingFraction: 0.82), value: appState.state)
-        .onHover { hovering in
-            isHovering = hovering
-            if hovering {
-                if currentIdea == nil {
-                    currentIdea = ProjectIdeaGenerator.shared.generateNextIdea()
-                }
-                appState.openHoverDrawer()
-            } else {
-                appState.scheduleCloseHoverDrawer(delay: 0.45)
-            }
-        }
     }
 }
 
 // MARK: - 1. Idle Notch Pill (Компактна чілка з персонажем Rango)
 struct NotchPillView: View {
     @ObservedObject var appState: AppState
-    let isHovering: Bool
+    @State private var isHovered = false
 
     var body: some View {
         HStack(spacing: 8) {
             // Rango хамелеон
-            RangoAvatarView(size: 22)
+            RangoAvatarView(size: 20)
+                .frame(width: 24, height: 22)
 
             Text("Rango")
                 .font(.system(size: 11, weight: .bold, design: .rounded))
@@ -75,21 +69,43 @@ struct NotchPillView: View {
                 Circle()
                     .fill(Color.green)
                     .frame(width: 5, height: 5)
+                    .shadow(color: Color.green.opacity(0.8), radius: 2)
                 Text("ШІ активний")
                     .font(.system(size: 9.5, weight: .medium))
-                    .foregroundColor(.white.opacity(0.65))
+                    .foregroundColor(.white.opacity(0.7))
             }
         }
-        .padding(.horizontal, 10)
-        .frame(maxHeight: .infinity)
+        .padding(.horizontal, 11)
+        .frame(height: 30)
         .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color.black.opacity(0.92))
+            Capsule(style: .continuous)
+                .fill(Color.black.opacity(0.96))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(Color.white.opacity(0.12), lineWidth: 0.8)
+                    Capsule(style: .continuous)
+                        .stroke(
+                            LinearGradient(
+                                colors: [Color.green.opacity(0.6), Color.teal.opacity(0.3), Color.white.opacity(0.15)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
                 )
+                .shadow(color: Color.black.opacity(0.45), radius: 6, y: 2)
         )
+        .scaleEffect(isHovered ? 1.05 : 1.0)
+        .onHover { hovering in
+            withAnimation(.spring(response: 0.25, dampingFraction: 0.75)) {
+                isHovered = hovering
+            }
+            if hovering {
+                appState.openHoverDrawer()
+            }
+        }
+        .onTapGesture {
+            appState.openHoverDrawer()
+            SoundEffect.shared.play("greet")
+        }
     }
 }
 
@@ -388,19 +404,33 @@ struct NotchDrawerView: View {
                     .buttonStyle(.plain)
                 }
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 14)
             .padding(.bottom, 12)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(width: 490, height: 160)
         .background(
             RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(Color(red: 0.08, green: 0.08, blue: 0.09).opacity(0.96))
+                .fill(Color(red: 0.08, green: 0.08, blue: 0.09).opacity(0.97))
                 .overlay(
                     RoundedRectangle(cornerRadius: 22, style: .continuous)
-                        .stroke(Color.white.opacity(0.14), lineWidth: 1)
+                        .stroke(
+                            LinearGradient(
+                                colors: [Color.green.opacity(0.5), Color.teal.opacity(0.3), Color.white.opacity(0.12)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
                 )
         )
-        .shadow(color: Color.black.opacity(0.4), radius: 18, x: 0, y: 10)
+        .shadow(color: Color.black.opacity(0.6), radius: 20, y: 10)
+        .onHover { hovering in
+            if hovering {
+                appState.cancelScheduledCloseHover()
+            } else {
+                appState.scheduleCloseHoverDrawer()
+            }
+        }
     }
 }
 

@@ -134,14 +134,6 @@ final class SocketServer {
             return
         }
 
-        // Open Settings
-        if type == "open_settings" || type == "settings" {
-            Task { @MainActor in
-                SettingsWindowController.shared.show()
-            }
-            return
-        }
-
         // 2. Direct or Legacy Question (never on PostToolUse)
         if (type == "ask_question" || toolName == "ask_question" || toolName == "AskUserQuestion" || type == "ask_user_question") && type != "PostToolUse" {
             let (questionText, options) = parseQuestionPayload(obj)

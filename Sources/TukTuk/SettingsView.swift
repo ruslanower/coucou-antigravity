@@ -394,28 +394,3 @@ struct AboutSettingsTab: View {
         .padding(20)
     }
 }
-
-// MARK: - Dedicated Window Controller for Settings
-final class SettingsWindowController: NSWindowController {
-    static let shared = SettingsWindowController()
-
-    convenience init() {
-        let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 580, height: 420),
-            styleMask: [.titled, .closable, .miniaturizable],
-            backing: .buffered,
-            defer: false
-        )
-        window.title = "Налаштування — Тук-тук"
-        window.center()
-        window.contentView = NSHostingView(rootView: SettingsView())
-        window.isReleasedWhenClosed = false
-        self.init(window: window)
-    }
-
-    func show() {
-        NSApp.activate(ignoringOtherApps: true)
-        self.window?.center()
-        self.window?.makeKeyAndOrderFront(nil)
-    }
-}

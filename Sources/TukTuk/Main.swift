@@ -7,7 +7,7 @@ struct TukTukApp: App {
 
     var body: some Scene {
         Settings {
-            EmptyView()
+            SettingsView()
         }
     }
 }
@@ -57,7 +57,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func openSettings() {
         Task { @MainActor in
-            SettingsWindowController.shared.show()
+            AppState.shared.openSettingsWindow()
         }
     }
 

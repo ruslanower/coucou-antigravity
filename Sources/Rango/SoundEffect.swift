@@ -14,6 +14,7 @@ final class SoundEffect {
         let possibleDirs = [
             Bundle.main.resourcePath.map { $0 + "/sounds" },
             Bundle.main.resourcePath,
+            "/Applications/Rango.app/Contents/Resources/sounds",
             "/Applications/TukTuk.app/Contents/Resources/sounds",
             "/Applications/CoucouAntigravity.app/Contents/Resources/sounds",
             NSString("~/Library/Application Support/NotchBuddy/sounds").expandingTildeInPath,

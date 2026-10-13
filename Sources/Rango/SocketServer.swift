@@ -7,7 +7,7 @@ final class SocketServer {
     private var listenFd: Int32 = -1
     private var isRunning = false
     private let socketPath: String
-    private let tmpSocketPath = "/tmp/tuktuk.sock"
+    private let tmpSocketPaths = ["/tmp/rango.sock", "/tmp/tuktuk.sock", "/tmp/notchbuddy.sock"]
 
     private init() {
         let appSupport = NSString("~/Library/Application Support/NotchBuddy").expandingTildeInPath
@@ -19,11 +19,11 @@ final class SocketServer {
         guard !isRunning else { return }
         signal(SIGPIPE, SIG_IGN)
         unlink(socketPath)
-        unlink(tmpSocketPath)
+        for p in tmpSocketPaths { unlink(p) }
 
         let fd = socket(AF_UNIX, SOCK_STREAM, 0)
         guard fd >= 0 else {
-            NSLog("[TukTuk] Failed to create socket: %d", errno)
+            NSLog("[Rango] Failed to create socket: %d", errno)
             return
         }
         self.listenFd = fd
@@ -46,22 +46,24 @@ final class SocketServer {
         }
 
         guard bindRes == 0 else {
-            NSLog("[TukTuk] Failed to bind socket: %d", errno)
+            NSLog("[Rango] Failed to bind socket: %d", errno)
             close(fd)
             return
         }
 
         guard listen(fd, 20) == 0 else {
-            NSLog("[TukTuk] Failed to listen on socket: %d", errno)
+            NSLog("[Rango] Failed to listen on socket: %d", errno)
             close(fd)
             return
         }
 
-        // Create symlink in /tmp for universal discovery
-        _ = symlink(socketPath, tmpSocketPath)
+        // Create symlinks in /tmp for universal discovery
+        for p in tmpSocketPaths {
+            _ = symlink(socketPath, p)
+        }
 
         self.isRunning = true
-        NSLog("[TukTuk] Socket server listening at: %@", socketPath)
+        NSLog("[Rango] Socket server listening at: %@", socketPath)
 
         // Run accept loop on background thread
         DispatchQueue.global(qos: .userInteractive).async { [weak self] in
@@ -124,7 +126,7 @@ final class SocketServer {
     private func processMessage(_ obj: [String: Any]) {
         let type = (obj["type"] as? String) ?? (obj["event"] as? String) ?? (obj["coucou_kind"] as? String) ?? (obj["hook_event_name"] as? String) ?? ""
         let toolName = (obj["tool_name"] as? String) ?? (obj["tool"] as? String) ?? ""
-        NSLog("[TukTuk] Processing message: type=%@ tool=%@", type, toolName)
+        NSLog("[Rango] Processing message: type=%@ tool=%@", type, toolName)
 
         // 1. Close / Dismiss / PostToolUse completion
         if type == "close" || type == "dismiss" || type == "Stop" || (type == "PostToolUse" && toolName == "ask_question") {

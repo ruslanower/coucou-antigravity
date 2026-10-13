@@ -75,10 +75,17 @@ end tell
     }
 
     static func launchIdeaInAntigravity(idea: StartupIdea) {
-        let prompt = """
-Привіт! Почнімо роботу над новим мобільним застосунком: «\(idea.title)».
+        var contextIntro = "Привіт! Почнімо роботу над новим мобільним застосунком: «\(idea.title)»."
+        if let project = idea.basedOnProject {
+            contextIntro = "Привіт! На основі нашого проєкту «\(project)» в Antigravity розпочнімо розробку нового синергетичного продукту: «\(idea.title)»."
+        } else if let synergies = idea.synergyProjects, synergies.count >= 2 {
+            contextIntro = "Привіт! На основі синергії між нашими проєктами «\(synergies[0])» та «\(synergies[1])» в Antigravity розпочнімо розробку нового продукту: «\(idea.title)»."
+        }
 
-Категорія: \(idea.category)
+        let prompt = """
+\(contextIntro)
+
+Категорія / Контекст: \(idea.category)
 Коротка концепція:
 \(idea.description)
 
@@ -185,7 +192,7 @@ end tell
                 var errorDict: NSDictionary?
                 appleScript.executeAndReturnError(&errorDict)
                 if let err = errorDict {
-                    NSLog("[TukTuk] AppleScript error: %@", err)
+                    NSLog("[Rango] AppleScript error: %@", err)
                 }
             }
         }

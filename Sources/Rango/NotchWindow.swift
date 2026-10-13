@@ -147,6 +147,6 @@ final class NotchWindowController: ObservableObject {
             }
             .store(in: &cancellables)
 
-        NSLog("[TukTuk] NotchWindowController initialized on screen: %@ frame: %@", screen.localizedName, NSStringFromRect(rect))
+        NSLog("[Rango] NotchWindowController initialized on screen: %@ frame: %@", screen.localizedName, NSStringFromRect(rect))
     }
 }

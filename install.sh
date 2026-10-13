@@ -2,12 +2,12 @@
 set -e
 
 # ========================================================
-#   «Тук-тук» (TukTuk) — Нативний помічник чілки для Antigravity
+#   «Rango» — Нативний помічник чілки для Antigravity
 #   Репозиторій: https://github.com/ruslanower/coucou-antigravity
 # ========================================================
 
 echo "========================================================"
-echo "    «Тук-тук» (TukTuk) — Встановлення нативного помічника"
+echo "    «Rango» — Встановлення нативного ШІ-помічника"
 echo "========================================================"
 
 if [ "$(uname)" != "Darwin" ]; then
@@ -22,12 +22,12 @@ fi
 
 SUPPORT_DIR="$HOME/Library/Application Support/NotchBuddy"
 CONFIG_DIR="$HOME/.gemini/config"
-APP_PATH="/Applications/TukTuk.app"
+APP_PATH="/Applications/Rango.app"
 REPO_RAW="https://raw.githubusercontent.com/ruslanower/coucou-antigravity/main"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd || echo "")"
 
 # 1. Збірка нативного Swift/SwiftUI додатку
-echo "🛠  Збірка нативного Swift додатку «Тук-тук»..."
+echo "🛠  Збірка нативного Swift додатку «Rango»..."
 BUILD_DIR="${SCRIPT_DIR}"
 
 if [ ! -f "${BUILD_DIR}/Package.swift" ]; then
@@ -42,16 +42,18 @@ swift build -c release
 
 # 2. Формування .app бандла
 echo "📦 Створення бандла ${APP_PATH}..."
+pkill -9 Rango 2>/dev/null || true
 pkill -9 TukTuk 2>/dev/null || true
 pkill -9 CoucouAntigravity 2>/dev/null || true
 pkill -9 Coucou 2>/dev/null || true
 rm -rf "$APP_PATH"
+rm -rf "/Applications/TukTuk.app" 2>/dev/null || true
 rm -rf "/Applications/CoucouAntigravity.app" 2>/dev/null || true
 rm -rf "/Applications/Coucou.app" 2>/dev/null || true
 
 mkdir -p "${APP_PATH}/Contents/MacOS"
 mkdir -p "${APP_PATH}/Contents/Resources"
-cp "${BUILD_DIR}/.build/release/TukTuk" "${APP_PATH}/Contents/MacOS/"
+cp "${BUILD_DIR}/.build/release/Rango" "${APP_PATH}/Contents/MacOS/"
 
 if [ -d "${BUILD_DIR}/Resources" ]; then
     cp -r "${BUILD_DIR}/Resources/"* "${APP_PATH}/Contents/Resources/" 2>/dev/null || true
@@ -63,13 +65,13 @@ cat << 'EOF' > "${APP_PATH}/Contents/Info.plist"
 <plist version="1.0">
 <dict>
     <key>CFBundleIdentifier</key>
-    <string>com.ruslanower.TukTuk</string>
+    <string>com.ruslanower.Rango</string>
     <key>CFBundleName</key>
-    <string>TukTuk</string>
+    <string>Rango</string>
     <key>CFBundleDisplayName</key>
-    <string>Тук-тук</string>
+    <string>Rango</string>
     <key>CFBundleExecutable</key>
-    <string>TukTuk</string>
+    <string>Rango</string>
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
     <key>CFBundlePackageType</key>
@@ -119,16 +121,16 @@ else
     curl -sSL -o "$CONFIG_DIR/hooks.json" "${REPO_RAW}/hooks.json"
 fi
 
-# 4. Запуск «Тук-тук»
-echo "🚀 Запуск «Тук-тук»..."
-nohup "$APP_PATH/Contents/MacOS/TukTuk" > /tmp/tuktuk.log 2>&1 &
+# 4. Запуск «Rango»
+echo "🚀 Запуск «Rango»..."
+nohup "$APP_PATH/Contents/MacOS/Rango" > /tmp/rango.log 2>&1 &
 sleep 1
 
 echo ""
-echo "🎉 ВСТАНОВЛЕННЯ «ТУК-ТУК» УСПІШНО ЗАВЕРШЕНО!"
+echo "🎉 ВСТАНОВЛЕННЯ «RANGO» УСПІШНО ЗАВЕРШЕНО!"
 echo "--------------------------------------------------------"
-echo "1. «Тук-тук» тепер живе у вашій чілці та панелі меню."
-echo "2. Наведіть курсор на чілку — виїде плавна шторка з налаштуваннями."
-echo "3. Усі запитання Antigravity одночасно зʼявляються і в чілці, і в чаті."
-echo "4. Клік по варіанту в чілці миттєво підтверджує його в Antigravity!"
+echo "1. «Rango» тепер живе у вашій чілці та панелі меню."
+echo "2. Наведіть курсор на чілку — відкриється шторка з хамелеоном Rango."
+echo "3. Rango динамічно аналізує всі ваші проєкти в Antigravity та генерує ідеї!"
+echo "4. Клік по «Втілити ідею» миттєво відкриває Antigravity та починає роботу."
 echo "--------------------------------------------------------"

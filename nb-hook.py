@@ -19,10 +19,13 @@ import socket
 import subprocess
 
 SOCKET_PATH = os.path.expanduser('~/Library/Application Support/NotchBuddy/nb.sock')
-if not os.path.exists(SOCKET_PATH) and os.path.exists('/tmp/tuktuk.sock'):
-    SOCKET_PATH = '/tmp/tuktuk.sock'
-WORKER_PID_FILE = '/tmp/tuktuk_antigravity_worker.pid'
-LAST_DECISION_FILE = '/tmp/tuktuk_last_decision.json'
+if not os.path.exists(SOCKET_PATH):
+    if os.path.exists('/tmp/rango.sock'):
+        SOCKET_PATH = '/tmp/rango.sock'
+    elif os.path.exists('/tmp/tuktuk.sock'):
+        SOCKET_PATH = '/tmp/tuktuk.sock'
+WORKER_PID_FILE = '/tmp/rango_antigravity_worker.pid'
+LAST_DECISION_FILE = '/tmp/rango_last_decision.json'
 
 
 def is_worker_running():

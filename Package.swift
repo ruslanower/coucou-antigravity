@@ -2,20 +2,20 @@
 import PackageDescription
 
 let package = Package(
-    name: "TukTuk",
+    name: "Rango",
     platforms: [
         .macOS(.v14)
     ],
     products: [
         .executable(
-            name: "TukTuk",
-            targets: ["TukTuk"]
+            name: "Rango",
+            targets: ["Rango"]
         )
     ],
     targets: [
         .executableTarget(
-            name: "TukTuk",
-            path: "Sources/TukTuk"
+            name: "Rango",
+            path: "Sources/Rango"
         )
     ]
 )

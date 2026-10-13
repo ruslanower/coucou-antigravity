@@ -2,7 +2,7 @@ import SwiftUI
 import AppKit
 
 @main
-struct TukTukApp: App {
+struct RangoApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {
@@ -21,24 +21,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         checkAccessibilityPermissions()
         SocketServer.shared.start()
         NotchWindowController.shared.setup()
-        NSLog("[TukTuk] Launched successfully via SwiftUI!")
+        NSLog("[Rango] Launched successfully via SwiftUI!")
     }
 
     private func checkAccessibilityPermissions() {
         let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: false] as CFDictionary
         let isTrusted = AXIsProcessTrustedWithOptions(options)
-        NSLog("[TukTuk] Accessibility status: %d", isTrusted ? 1 : 0)
+        NSLog("[Rango] Accessibility status: %d", isTrusted ? 1 : 0)
     }
 
     private func setupStatusItem() {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         if let button = item.button {
-            button.title = "🔮"
-            button.toolTip = "«Тук-тук» — Antigravity Помічник"
+            button.title = "🦎"
+            button.toolTip = "«Rango» — ШІ-помічник для Antigravity"
         }
 
         let menu = NSMenu()
-        menu.addItem(NSMenuItem(title: "Тук-тук v1.0.0 (Активний)", action: nil, keyEquivalent: ""))
+        menu.addItem(NSMenuItem(title: "Rango v1.0.0 (Активний)", action: nil, keyEquivalent: ""))
         menu.addItem(NSMenuItem.separator())
 
         let settingsItem = NSMenuItem(title: "Налаштування...", action: #selector(openSettings), keyEquivalent: ",")
@@ -71,9 +71,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func testQuestion() {
         Task { @MainActor in
             AppState.shared.showQuestion(
-                question: "Тестовий запит: чи все зручно працює в чілці «Тук-тук»?",
+                question: "Тестовий запит: чи все зручно працює в чілці «Rango»?",
                 options: [
-                    "(Рекомендовано) Так, все працює ідеально!",
+                    "(Рекомендовано) Так, Rango працює ідеально!",
                     "Варіант 2: Перевірка звʼязку",
                     "Варіант 3: Тест кнопки"
                 ]

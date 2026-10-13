@@ -29,10 +29,10 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 6) {
                 // App Branding Header
                 HStack(spacing: 10) {
-                    MochiFaceView(isBlinking: false, mood: .happy)
-                        .frame(width: 32, height: 22)
+                    RangoAvatarView(size: 32)
+                        .frame(width: 32, height: 32)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Тук-тук")
+                        Text("Rango")
                             .font(.system(size: 14, weight: .bold, design: .rounded))
                             .foregroundColor(.primary)
                         Text("v1.0.0 для Antigravity")
@@ -115,7 +115,7 @@ struct GeneralSettingsTab: View {
                 // Sound Section
                 GroupBox(label: Label("Звуковий супровід", systemImage: "speaker.wave.2.fill")) {
                     VStack(alignment: .leading, spacing: 12) {
-                        Toggle("Увімкнути звуки Mochi та сповіщень", isOn: $appState.soundEnabled)
+                        Toggle("Увімкнути звуки Rango та сповіщень", isOn: $appState.soundEnabled)
                             .toggleStyle(.switch)
 
                         if appState.soundEnabled {
@@ -159,7 +159,7 @@ struct GeneralSettingsTab: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Toggle("Розгортати шторку при наведенні курсору миші", isOn: $appState.hoverExpandEnabled)
                             .toggleStyle(.switch)
-                        Text("Коли ви підводите курсор до чілки, панель «Тук-тук» автоматично опускається з елементами керування.")
+                        Text("Коли ви підводите курсор до чілки, панель «Rango» автоматично опускається з елементами керування.")
                             .font(.system(size: 11))
                             .foregroundColor(.secondary)
                     }
@@ -214,7 +214,7 @@ struct AntigravitySettingsTab: View {
                             Spacer()
                             Button("Надіслати тестовий запит у чілку") {
                                 appState.showQuestion(
-                                    question: "Тест звʼязку: перевірка налаштувань «Тук-тук»",
+                                    question: "Тест звʼязку: перевірка налаштувань «Rango»",
                                     options: ["(Рекомендовано) Все працює чудово!", "Варіант 2: Перевірка чілки"]
                                 )
                             }
@@ -228,7 +228,7 @@ struct AntigravitySettingsTab: View {
 
                 GroupBox(label: Label("Налаштування для друзів та інших пристроїв", systemImage: "network")) {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Щоб встановити «Тук-тук» на іншому компʼютері чи поділитися з другом:")
+                        Text("Щоб встановити «Rango» на іншому компʼютері чи поділитися з другом:")
                             .font(.system(size: 11.5))
                         Text("Виконайте команду в терміналі:")
                             .font(.system(size: 11, weight: .semibold))
@@ -263,7 +263,7 @@ struct NotificationsSettingsTab: View {
                 Text("Сповіщення соцмереж та браузера")
                     .font(.system(size: 16, weight: .bold))
 
-                Text("«Тук-тук» може відображати короткі інформаційні плашки у чілці при надходженні повідомлень з браузера чи додатків звʼязку:")
+                Text("«Rango» може відображати короткі інформаційні плашки у чілці при надходженні повідомлень з браузера чи додатків звʼязку:")
                     .font(.system(size: 11.5))
                     .foregroundColor(.secondary)
 
@@ -362,18 +362,18 @@ struct AboutSettingsTab: View {
         VStack(spacing: 16) {
             Spacer()
 
-            MochiFaceView(isBlinking: false, mood: .excited)
-                .frame(width: 64, height: 44)
+            RangoAvatarView(size: 64)
+                .frame(width: 64, height: 64)
 
             VStack(spacing: 4) {
-                Text("Тук-тук (Tuk-Tuk)")
+                Text("Rango")
                     .font(.system(size: 18, weight: .bold, design: .rounded))
-                Text("Версія 1.0.0 (Суто для Antigravity)")
+                Text("Версія 1.0.0 (ШІ-помічник для Antigravity)")
                     .font(.system(size: 12))
                     .foregroundColor(.secondary)
             }
 
-            Text("Нативний інтерактивний помічник чілки MacBook, що миттєво синхронізує запитання та вибір користувача з Google Antigravity.")
+            Text("Нативний інтерактивний помічник чілки MacBook, що синхронізує запитання та генерує ідеї нових застосунків на основі твоїх проєктів у Google Antigravity.")
                 .font(.system(size: 12))
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)

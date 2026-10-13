@@ -27,6 +27,7 @@ final class AppState: ObservableObject {
 
     @Published var state: NotchState = .idle
     @Published var isBlinking: Bool = false
+    @Published var notchHeight: CGFloat = 34
 
     private var statusResetWorkItem: DispatchWorkItem?
     private var blinkTimer: AnyCancellable?

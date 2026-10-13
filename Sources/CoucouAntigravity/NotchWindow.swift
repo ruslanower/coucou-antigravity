@@ -30,10 +30,11 @@ final class NotchWindow: NSPanel {
 final class NotchContainerView: NSView {
     override func hitTest(_ point: NSPoint) -> NSView? {
         let view = super.hitTest(point)
-        // If idle, pass clicks through unless clicking directly on the notch pill
+        // If idle, pass clicks through unless clicking directly on the peeking notch pill
         if AppState.shared.state == .idle {
             let topY = self.frame.height
-            let inPill = point.y >= (topY - 36) && abs(point.x - (self.frame.width / 2)) <= 110
+            let pillH = AppState.shared.notchHeight + 22
+            let inPill = point.y >= (topY - pillH) && abs(point.x - (self.frame.width / 2)) <= 95
             return inPill ? view : nil
         }
         return view
@@ -53,6 +54,9 @@ final class NotchWindowController: ObservableObject {
         guard let screen = NSScreen.screens.first(where: { $0.safeAreaInsets.top > 0 }) ?? NSScreen.main else {
             return
         }
+
+        let topInset = screen.safeAreaInsets.top
+        AppState.shared.notchHeight = topInset > 0 ? topInset : 34
 
         let panelW: CGFloat = 600
         let panelH: CGFloat = 420

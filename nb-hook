@@ -2,7 +2,9 @@
 # Coucou Hook Relay for Google Antigravity
 HOOK_DIR="$(dirname "$0")"
 
-if command -v python3 >/dev/null 2>&1; then
+if [ -x /usr/bin/python3 ]; then
+    exec /usr/bin/python3 "$HOOK_DIR/nb-hook.py" "$@"
+elif command -v python3 >/dev/null 2>&1; then
     exec python3 "$HOOK_DIR/nb-hook.py" "$@"
 else
     printf '{"decision":"ask"}\n'

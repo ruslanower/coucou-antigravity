@@ -27,6 +27,19 @@ final class NotchWindow: NSPanel {
     }
 }
 
+final class NotchContainerView: NSView {
+    override func hitTest(_ point: NSPoint) -> NSView? {
+        let view = super.hitTest(point)
+        // If idle, pass clicks through unless clicking directly on the notch pill
+        if AppState.shared.state == .idle {
+            let topY = self.frame.height
+            let inPill = point.y >= (topY - 36) && abs(point.x - (self.frame.width / 2)) <= 110
+            return inPill ? view : nil
+        }
+        return view
+    }
+}
+
 @MainActor
 final class NotchWindowController: ObservableObject {
     static let shared = NotchWindowController()
@@ -41,8 +54,8 @@ final class NotchWindowController: ObservableObject {
             return
         }
 
-        let panelW: CGFloat = 520
-        let panelH: CGFloat = 340
+        let panelW: CGFloat = 600
+        let panelH: CGFloat = 420
         let sf = screen.frame
 
         let rect = NSRect(
@@ -53,45 +66,25 @@ final class NotchWindowController: ObservableObject {
         )
 
         let panel = NotchWindow(contentRect: rect)
-        let hostingView = NSHostingView(rootView: NotchView())
-        hostingView.frame = NSRect(origin: .zero, size: rect.size)
-        panel.contentView = hostingView
+        let container = NotchContainerView(frame: NSRect(origin: .zero, size: rect.size))
+        container.autoresizingMask = [.width, .height]
 
+        let hostingView = NSHostingView(rootView: NotchView())
+        hostingView.frame = container.bounds
+        hostingView.autoresizingMask = [.width, .height]
+        container.addSubview(hostingView)
+
+        panel.contentView = container
         self.window = panel
         panel.orderFrontRegardless()
 
-        // Observe state changes to adjust window interaction & size
         AppState.shared.$state
             .receive(on: DispatchQueue.main)
-            .sink { [weak panel] state in
-                guard let panel = panel else { return }
-                guard let curScreen = NSScreen.screens.first(where: { $0.safeAreaInsets.top > 0 }) ?? NSScreen.main else { return }
-                let sf = curScreen.frame
-
-                let targetW: CGFloat
-                let targetH: CGFloat
-
-                switch state {
-                case .idle:
-                    targetW = 200
-                    targetH = 34
-                case .status:
-                    targetW = 320
-                    targetH = 44
-                case .question:
-                    targetW = 500
-                    targetH = 320
-                }
-
-                let newFrame = NSRect(
-                    x: sf.midX - targetW / 2,
-                    y: sf.maxY - targetH,
-                    width: targetW,
-                    height: targetH
-                )
-                panel.setFrame(newFrame, display: true, animate: false)
-                panel.orderFrontRegardless()
+            .sink { [weak panel] _ in
+                panel?.orderFrontRegardless()
             }
             .store(in: &cancellables)
+
+        NSLog("[CoucouAntigravity] NotchWindowController initialized on screen: %@ frame: %@", screen.localizedName, NSStringFromRect(rect))
     }
 }

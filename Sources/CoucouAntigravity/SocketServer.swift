@@ -119,6 +119,7 @@ final class SocketServer {
     private func processMessage(_ obj: [String: Any]) {
         let type = (obj["type"] as? String) ?? (obj["event"] as? String) ?? (obj["coucou_kind"] as? String) ?? (obj["hook_event_name"] as? String) ?? ""
         let toolName = (obj["tool_name"] as? String) ?? (obj["tool"] as? String) ?? ""
+        NSLog("[CoucouAntigravity] Processing message: type=%@ tool=%@", type, toolName)
 
         // 1. Direct or Legacy Question
         if type == "ask_question" || toolName == "ask_question" || toolName == "AskUserQuestion" || type == "ask_user_question" {

@@ -7,6 +7,7 @@ struct NotchView: View {
         ZStack(alignment: .top) {
             content
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .padding(.top, 0)
     }
 

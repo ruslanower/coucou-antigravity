@@ -23,6 +23,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         SocketServer.shared.start()
         NotchWindowController.shared.setup()
         UpdateManager.shared.startPeriodicCheck()
+        NotificationWatcher.shared.start()
         NSLog("[Rango] Launched successfully via SwiftUI!")
     }
 

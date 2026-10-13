@@ -55,7 +55,7 @@ final class NotchContainerView: NSView {
             }
 
         case .hoverDrawer:
-            let inDrawerZone = point.y >= (topY - 130) && centerDist <= 255
+            let inDrawerZone = point.y >= (topY - 155) && centerDist <= 260
             if inDrawerZone {
                 AppState.shared.cancelScheduledCloseHover()
             } else {
@@ -85,7 +85,7 @@ final class NotchContainerView: NSView {
             return inNotchZone ? view : nil
 
         case .hoverDrawer:
-            let inDrawerZone = point.y >= (topY - 130) && centerDist <= 255
+            let inDrawerZone = point.y >= (topY - 155) && centerDist <= 260
             return inDrawerZone ? view : nil
 
         case .question:

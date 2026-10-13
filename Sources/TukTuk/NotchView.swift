@@ -99,6 +99,8 @@ struct NotchView: View {
         }
     }
 
+    @State private var currentIdea: StartupIdea? = nil
+
     // MARK: - 2. Hover Drawer View (Оригінальний інтерфейс Coucou з двома картками)
     private var hoverDrawerView: some View {
         VStack(spacing: 10) {
@@ -123,18 +125,20 @@ struct NotchView: View {
                             .foregroundColor(.white.opacity(0.6))
                     }
                     .buttonStyle(.plain)
+                    .help("Фокус на Antigravity")
 
                     Button(action: {
-                        appState.showQuestion(
-                            question: "Новий запит: перевірка звʼязку з Antigravity",
-                            options: ["(Рекомендовано) Так, все супер!", "Тестовий варіант 2"]
-                        )
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.78)) {
+                            currentIdea = StartupIdeas.random()
+                        }
+                        SoundEffect.shared.play("pop")
                     }) {
                         Image(systemName: "plus")
                             .font(.system(size: 12, weight: .bold))
                             .foregroundColor(.white.opacity(0.6))
                     }
                     .buttonStyle(.plain)
+                    .help("Отримати ідею для застосунку")
                 }
 
                 Spacer()
@@ -168,11 +172,13 @@ struct NotchView: View {
             .padding(.horizontal, 16)
             .padding(.top, 10)
 
-            // Нижня частина: 2 великі картки поруч (як в оригіналі Coucou)
+            // Нижня частина: 2 великі картки поруч
             HStack(spacing: 10) {
-                // Картка 1: Mochi + Antigravity Інтеграція
+                // Картка 1: Mochi + Відкрити Antigravity
                 Button(action: {
                     AntigravityBridge.focusAntigravity()
+                    SoundEffect.shared.play("peek")
+                    appState.close()
                 }) {
                     HStack(spacing: 12) {
                         MochiWithHatView(isBlinking: appState.isBlinking, mood: .happy, size: 40)
@@ -183,72 +189,15 @@ struct NotchView: View {
                                 Circle()
                                     .fill(Color.purple)
                                     .frame(width: 6, height: 6)
-                                Text("Antigravity Integration")
+                                Text("Відкрити Antigravity")
                                     .font(.system(size: 12, weight: .semibold, design: .rounded))
                                     .foregroundColor(.white)
                                 Image(systemName: "arrow.up.right")
                                     .font(.system(size: 8.5, weight: .bold))
-                                    .foregroundColor(.white.opacity(0.5))
+                                    .foregroundColor(.white.opacity(0.6))
                             }
 
-                            HStack(spacing: 5) {
-                                Circle()
-                                    .fill(Color.green)
-                                    .frame(width: 5, height: 5)
-                                Text("Хуки активні")
-                                    .font(.system(size: 10, weight: .medium))
-                                    .foregroundColor(.white.opacity(0.65))
-                            }
-                        }
-
-                        Spacer()
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(Color.white.opacity(0.08))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .stroke(Color.white.opacity(0.12), lineWidth: 1)
-                            )
-                    )
-                }
-                .buttonStyle(.plain)
-
-                // Картка 2: «Тук-тук» швидкий тест і стан
-                Button(action: {
-                    appState.showQuestion(
-                        question: "Тест: чи подобається вам новий вигляд «Тук-тук»?",
-                        options: [
-                            "(Рекомендовано) Так, 10 з 10 — як в оригіналі!",
-                            "Варіант 2: Працює відмінно",
-                            "Варіант 3: Тест звʼязку з Antigravity"
-                        ]
-                    )
-                }) {
-                    HStack(spacing: 10) {
-                        ZStack {
-                            Circle()
-                                .fill(LinearGradient(
-                                    colors: [Color.purple, Color.indigo],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ))
-                                .frame(width: 32, height: 32)
-
-                            Image(systemName: "bolt.fill")
-                                .font(.system(size: 14, weight: .bold))
-                                .foregroundColor(.white)
-                        }
-
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text("«Тук-тук» активний")
-                                .font(.system(size: 11.5, weight: .semibold))
-                                .foregroundColor(.white)
-
-                            Text("Натисніть для тесту ↗")
+                            Text("Швидкий запуск")
                                 .font(.system(size: 10, weight: .medium))
                                 .foregroundColor(.white.opacity(0.6))
                         }
@@ -268,11 +217,158 @@ struct NotchView: View {
                     )
                 }
                 .buttonStyle(.plain)
+
+                // Картка 2: Рандомайзер 333 ідей для застосунків
+                if let idea = currentIdea {
+                    VStack(alignment: .leading, spacing: 5) {
+                        HStack(alignment: .center, spacing: 6) {
+                            Text(idea.category)
+                                .font(.system(size: 8.5, weight: .bold, design: .rounded))
+                                .foregroundColor(.purple)
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 1.5)
+                                .background(Capsule().fill(Color.purple.opacity(0.2)))
+
+                            Spacer()
+
+                            Button(action: {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                    currentIdea = nil
+                                }
+                            }) {
+                                Image(systemName: "xmark")
+                                    .font(.system(size: 9, weight: .bold))
+                                    .foregroundColor(.white.opacity(0.45))
+                                    .padding(3)
+                            }
+                            .buttonStyle(.plain)
+                        }
+
+                        Text(idea.title)
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(.white)
+                            .lineLimit(1)
+
+                        Text(idea.description)
+                            .font(.system(size: 9.5))
+                            .foregroundColor(.white.opacity(0.75))
+                            .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true)
+
+                        HStack(spacing: 6) {
+                            Button(action: {
+                                withAnimation(.spring(response: 0.35, dampingFraction: 0.78)) {
+                                    currentIdea = StartupIdeas.random()
+                                }
+                                SoundEffect.shared.play("blip")
+                            }) {
+                                HStack(spacing: 3) {
+                                    Image(systemName: "dice.fill")
+                                        .font(.system(size: 8))
+                                    Text("Наступна ідея")
+                                        .font(.system(size: 9, weight: .semibold))
+                                }
+                                .foregroundColor(.white.opacity(0.9))
+                                .padding(.horizontal, 7)
+                                .padding(.vertical, 4)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 7, style: .continuous)
+                                        .fill(Color.white.opacity(0.12))
+                                )
+                            }
+                            .buttonStyle(.plain)
+
+                            Button(action: {
+                                AntigravityBridge.launchIdeaInAntigravity(idea: idea)
+                                SoundEffect.shared.play("approve")
+                                appState.close()
+                            }) {
+                                HStack(spacing: 3) {
+                                    Image(systemName: "sparkles")
+                                        .font(.system(size: 8))
+                                    Text("Втілити ідею 🚀")
+                                        .font(.system(size: 9, weight: .bold))
+                                }
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 7, style: .continuous)
+                                        .fill(LinearGradient(
+                                            colors: [Color.purple, Color.indigo],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        ))
+                                )
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        .padding(.top, 2)
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 7)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .fill(Color.white.opacity(0.09))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .stroke(Color.purple.opacity(0.45), lineWidth: 1)
+                            )
+                    )
+                } else {
+                    Button(action: {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.78)) {
+                            currentIdea = StartupIdeas.random()
+                        }
+                        SoundEffect.shared.play("pop")
+                    }) {
+                        HStack(spacing: 10) {
+                            ZStack {
+                                Circle()
+                                    .fill(LinearGradient(
+                                        colors: [Color.purple, Color.indigo],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ))
+                                    .frame(width: 32, height: 32)
+
+                                Image(systemName: "lightbulb.fill")
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundColor(.yellow)
+                            }
+
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text("Отримати ідею")
+                                    .font(.system(size: 11.5, weight: .semibold))
+                                    .foregroundColor(.white)
+
+                                Text("Для нового застосунку 🎲")
+                                    .font(.system(size: 10, weight: .medium))
+                                    .foregroundColor(.white.opacity(0.6))
+                            }
+
+                            Spacer()
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .fill(Color.white.opacity(0.08))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                                )
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
             }
             .padding(.horizontal, 12)
             .padding(.bottom, 12)
         }
-        .frame(width: 490, height: 118)
+        .frame(width: 490, height: currentIdea != nil ? 144 : 118)
         .background(
             RoundedRectangle(cornerRadius: 22, style: .continuous)
                 .fill(Color.black.opacity(0.97))

@@ -82,17 +82,15 @@ try:
                         idx = i
                         break
 
-                # AppleScript: Bring Antigravity to front, arrow down to option, select and submit
-                down_arrows = "\\n".join(["key code 125\\ndelay 0.05" for _ in range(idx + 1)])
+                key_num = str(idx + 1)
                 osa = f'''
 tell application "System Events"
     if exists (process "Antigravity") then
         tell process "Antigravity" to set frontmost to true
         delay 0.15
-        {down_arrows}
-        key code 49 -- Space to select radio
-        delay 0.05
-        key code 36 -- Return to submit
+        keystroke "{key_num}"
+        delay 0.1
+        key code 36 -- Return
     end if
 end tell
 '''
@@ -219,35 +217,8 @@ def main():
                     'tool_name': 'AskUserQuestion',
                     'tool_input': {'questions': formatted_qs}
                 }
-                try:
-                    s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-                    s.settimeout(115.0)
-                    s.connect(SOCKET_PATH)
-                    s.sendall((json.dumps(q_card) + "\n").encode())
-                    chunks = []
-                    while True:
-                        chunk = s.recv(4096)
-                        if not chunk:
-                            break
-                        chunks.append(chunk)
-                        if b'\n' in chunk:
-                            break
-                    s.close()
-                    resp_text = b''.join(chunks).decode().strip()
-                    if resp_text:
-                        resp_obj = json.loads(resp_text)
-                        if resp_obj.get('permissionDecision') == 'answer':
-                            answers = resp_obj.get('answers', {})
-                            ans_list = [f"{k}: {v}" for k, v in answers.items()]
-                            ans_str = "; ".join(ans_list)
-                            out = {"decision": "deny", "reason": f"Відповідь користувача з чілки Coucou: {ans_str}"}
-                            sys.stdout.write(json.dumps(out) + '\n')
-                            sys.stdout.flush()
-                            return
-                except Exception:
-                    pass
+                spawn_antigravity_notch_worker(q_card)
 
-            # Fallback if user clicked "Reply in terminal" or Coucou is not running:
             sys.stdout.write('{"decision":"ask"}\n')
             sys.stdout.flush()
             return

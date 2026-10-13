@@ -39,78 +39,88 @@ struct NotchView: View {
 
     @State private var isHovered = false
 
-    // MARK: - 1. Idle Notch Pill (Визирає з-під шторки)
+    // MARK: - 1. Idle Notch Pill (Розширений у боки від шторки, без перекриття вікон знизу)
     private var idleNotchPill: some View {
-        let peekAmount: CGFloat = isHovered ? 18 : 13
-        let totalHeight: CGFloat = appState.notchHeight + peekAmount
-
-        return VStack(spacing: 0) {
-            Spacer()
-            HStack(spacing: 7) {
+        HStack(spacing: 0) {
+            // Ліве крило: Mochi маскот
+            HStack(spacing: 6) {
                 MochiFaceView(isBlinking: appState.isBlinking, mood: .happy)
                     .frame(width: 26, height: 16)
+            }
+            .frame(width: 48, height: appState.notchHeight)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                SoundEffect.shared.play("greet")
+            }
+
+            // Центральний проміжок під фізичну камеру та шторку
+            Spacer(minLength: 165)
+
+            // Праве крило: статус Antigravity
+            HStack(spacing: 5) {
+                Circle()
+                    .fill(Color.purple)
+                    .frame(width: 6, height: 6)
+                    .shadow(color: Color.purple.opacity(0.8), radius: 3)
 
                 Text("Antigravity")
                     .font(.system(size: 11, weight: .semibold, design: .rounded))
                     .foregroundColor(.white.opacity(0.88))
             }
-            .padding(.bottom, isHovered ? 5 : 3.5)
+            .frame(width: 86, height: appState.notchHeight)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                AntigravityBridge.focusAntigravity()
+            }
         }
-        .frame(width: 175, height: totalHeight)
+        .padding(.horizontal, 8)
+        .frame(width: isHovered ? 295 : 280, height: appState.notchHeight)
         .background(
-            NotchShape(cornerRadius: 12)
+            Capsule(style: .continuous)
                 .fill(Color.black)
                 .overlay(
-                    NotchShape(cornerRadius: 12)
+                    Capsule(style: .continuous)
                         .stroke(
                             LinearGradient(
-                                colors: [Color.white.opacity(0.12), Color.purple.opacity(0.35), Color.white.opacity(0.12)],
+                                colors: [Color.purple.opacity(0.4), Color.white.opacity(0.14), Color.purple.opacity(0.4)],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             ),
                             lineWidth: 1
                         )
                 )
-                .shadow(color: Color.black.opacity(0.5), radius: 6, x: 0, y: 3)
+                .shadow(color: Color.black.opacity(0.4), radius: 6, x: 0, y: 2)
         )
         .onHover { hovering in
             withAnimation(.spring(response: 0.28, dampingFraction: 0.72)) {
                 isHovered = hovering
             }
         }
-        .onTapGesture {
-            SoundEffect.shared.play("greet")
-        }
     }
 
-    // MARK: - 2. Status Pill
+    // MARK: - 2. Status Pill (У межах висоти меню)
     private func statusPill(text: String) -> some View {
-        let totalHeight: CGFloat = appState.notchHeight + 20
-        return VStack(spacing: 0) {
-            Spacer()
-            HStack(spacing: 8) {
-                Circle()
-                    .fill(Color.purple)
-                    .frame(width: 7, height: 7)
-                    .shadow(color: Color.purple.opacity(0.8), radius: 4)
+        HStack(spacing: 8) {
+            Circle()
+                .fill(Color.purple)
+                .frame(width: 7, height: 7)
+                .shadow(color: Color.purple.opacity(0.8), radius: 4)
 
-                Text(text)
-                    .font(.system(size: 11.5, weight: .medium))
-                    .foregroundColor(.white)
-                    .lineLimit(1)
-            }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 5)
+            Text(text)
+                .font(.system(size: 11.5, weight: .medium))
+                .foregroundColor(.white)
+                .lineLimit(1)
         }
-        .frame(height: totalHeight)
+        .padding(.horizontal, 16)
+        .frame(height: appState.notchHeight)
         .background(
-            NotchShape(cornerRadius: 14)
+            Capsule(style: .continuous)
                 .fill(Color.black.opacity(0.98))
                 .overlay(
-                    NotchShape(cornerRadius: 14)
+                    Capsule(style: .continuous)
                         .stroke(Color.purple.opacity(0.4), lineWidth: 1)
                 )
-                .shadow(color: Color.black.opacity(0.5), radius: 10, y: 4)
+                .shadow(color: Color.black.opacity(0.5), radius: 8, y: 2)
         )
     }
 

@@ -2,113 +2,117 @@
 set -e
 
 # ========================================================
-#   Coucou + Google Antigravity Automated Installer
+#   CoucouAntigravity — Native Notch Companion Installer
 #   Repository: https://github.com/ruslanower/coucou-antigravity
 # ========================================================
 
 echo "========================================================"
-echo "    Coucou + Google Antigravity Auto-Installer         "
+echo "    CoucouAntigravity — Встановлення нативного помічника "
 echo "========================================================"
 
 if [ "$(uname)" != "Darwin" ]; then
-    echo "❌ Помилка: Цей скрипт призначений тільки для macOS."
+    echo "❌ Помилка: Цей додаток призначений тільки для macOS."
+    exit 1
+fi
+
+if ! command -v swift >/dev/null 2>&1; then
+    echo "❌ Помилка: Потрібні Xcode Command Line Tools. Встановіть через 'xcode-select --install'."
     exit 1
 fi
 
 SUPPORT_DIR="$HOME/Library/Application Support/NotchBuddy"
 CONFIG_DIR="$HOME/.gemini/config"
-COUCOU_VERSION="v0.3.0"
-DOWNLOAD_URL="https://github.com/Louis-CFM/coucou/releases/download/${COUCOU_VERSION}/Coucou.zip"
+APP_PATH="/Applications/CoucouAntigravity.app"
 REPO_RAW="https://raw.githubusercontent.com/ruslanower/coucou-antigravity/main"
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd || echo "")"
 
-# Визначаємо цільову директорію для програми
-if [ -w "/Applications" ]; then
-    APP_PATH="/Applications/Coucou.app"
-else
-    mkdir -p "$HOME/Applications"
-    APP_PATH="$HOME/Applications/Coucou.app"
+# 1. Збірка або завантаження CoucouAntigravity
+echo "🛠  Збірка нативного Swift/SwiftUI додатку..."
+BUILD_DIR="${SCRIPT_DIR}"
+
+if [ ! -f "${BUILD_DIR}/Package.swift" ]; then
+    TMP_SRC=$(mktemp -d)
+    echo "🌐 Клонування вихідного коду з репозиторію..."
+    git clone --depth=1 https://github.com/ruslanower/coucou-antigravity.git "$TMP_SRC"
+    BUILD_DIR="$TMP_SRC"
 fi
 
-# 1. Завантаження та встановлення Coucou.app
-if [ ! -d "$APP_PATH" ] || [ "$1" == "--force" ]; then
-    echo "⬇️  Завантаження Coucou (${COUCOU_VERSION})..."
-    TMP_DIR=$(mktemp -d)
-    curl -fL -o "${TMP_DIR}/Coucou.zip" "$DOWNLOAD_URL"
-    echo "📦 Розпакування до ${APP_PATH}..."
-    unzip -q -o "${TMP_DIR}/Coucou.zip" -d "${TMP_DIR}/extracted"
-    rm -rf "$APP_PATH"
-    cp -R "${TMP_DIR}/extracted/Coucou.app" "$APP_PATH"
-    rm -rf "$TMP_DIR"
-    echo "✅ Coucou.app успішно встановлено в ${APP_PATH}"
-else
-    echo "✅ Coucou.app вже встановлено в ${APP_PATH}"
+cd "$BUILD_DIR"
+swift build -c release
+
+# 2. Формування .app бандла
+echo "📦 Створення бандла ${APP_PATH}..."
+pkill -9 CoucouAntigravity 2>/dev/null || true
+pkill -9 Coucou 2>/dev/null || true
+rm -rf "$APP_PATH"
+
+mkdir -p "${APP_PATH}/Contents/MacOS"
+mkdir -p "${APP_PATH}/Contents/Resources"
+cp "${BUILD_DIR}/.build/release/CoucouAntigravity" "${APP_PATH}/Contents/MacOS/"
+
+if [ -d "${BUILD_DIR}/Resources" ]; then
+    cp -r "${BUILD_DIR}/Resources/"* "${APP_PATH}/Contents/Resources/" 2>/dev/null || true
 fi
 
-# Зняття карантину Gatekeeper
+cat << 'EOF' > "${APP_PATH}/Contents/Info.plist"
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleIdentifier</key>
+    <string>com.ruslanower.CoucouAntigravity</string>
+    <key>CFBundleName</key>
+    <string>CoucouAntigravity</string>
+    <key>CFBundleDisplayName</key>
+    <string>Coucou Antigravity</string>
+    <key>CFBundleExecutable</key>
+    <string>CoucouAntigravity</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>12.0</string>
+    <key>LSUIElement</key>
+    <true/>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+</dict>
+</plist>
+EOF
+
 xattr -cr "$APP_PATH" 2>/dev/null || true
 
-# 2. Налаштування мосту NotchBuddy
-echo "⚙️  Встановлення мосту Antigravity <-> Coucou..."
+# 3. Налаштування хуків Antigravity
+echo "⚙️  Встановлення скриптів мосту..."
 mkdir -p "$SUPPORT_DIR"
 chmod 700 "$SUPPORT_DIR"
 
-if [ -n "$SCRIPT_DIR" ] && [ -f "${SCRIPT_DIR}/nb-hook.py" ]; then
-    cp "${SCRIPT_DIR}/nb-hook" "$SUPPORT_DIR/nb-hook"
-    cp "${SCRIPT_DIR}/nb-hook.py" "$SUPPORT_DIR/nb-hook.py"
+if [ -f "${BUILD_DIR}/nb-hook" ]; then
+    cp "${BUILD_DIR}/nb-hook" "$SUPPORT_DIR/nb-hook"
+    cp "${BUILD_DIR}/nb-hook.py" "$SUPPORT_DIR/nb-hook.py"
 else
-    echo "🌐 Завантаження скриптів мосту з GitHub..."
     curl -sSL -o "$SUPPORT_DIR/nb-hook" "${REPO_RAW}/nb-hook"
     curl -sSL -o "$SUPPORT_DIR/nb-hook.py" "${REPO_RAW}/nb-hook.py"
 fi
-
 chmod +x "$SUPPORT_DIR/nb-hook" "$SUPPORT_DIR/nb-hook.py"
 
-# 3. Налаштування параметрів Coucou (активація віджету Antigravity та показу карток)
-echo "🛠  Активація віджета Antigravity та показу карток у чілці..."
-defaults write fr.louisraille.NotchBuddy terminalCardsEnabled -bool true
-defaults write fr.louisraille.NotchBuddy mainPill -string "agent_antigravity"
-defaults write fr.louisraille.NotchBuddy autoCloseInterval -int 60
-
-python3 - << 'PYEOF'
-import plistlib, os, json
-
-p = os.path.expanduser("~/Library/Preferences/fr.louisraille.NotchBuddy.plist")
-if os.path.exists(p):
-    try:
-        with open(p, "rb") as f:
-            pl = plistlib.load(f)
-        raw = pl.get("activeIntegrations", b"[]")
-        if isinstance(raw, bytes):
-            items = json.loads(raw.decode("utf-8"))
-        else:
-            items = json.loads(raw)
-        if "agent_antigravity" not in items:
-            items.append("agent_antigravity")
-            pl["activeIntegrations"] = json.dumps(items).encode("utf-8")
-            with open(p, "wb") as f:
-                plistlib.dump(pl, f)
-    except Exception:
-        pass
-PYEOF
-
-# 4. Налаштування хуків Antigravity (~/.gemini/config/hooks.json)
-echo "🔗 Налаштування хуків Antigravity..."
+echo "🔗 Налаштування конфігурації хуків..."
 mkdir -p "$CONFIG_DIR"
-HOOKS_FILE="$CONFIG_DIR/hooks.json"
-
-if [ -n "$SCRIPT_DIR" ] && [ -f "${SCRIPT_DIR}/hooks.json" ]; then
-    cp "${SCRIPT_DIR}/hooks.json" "$HOOKS_FILE"
+if [ -f "${BUILD_DIR}/hooks.json" ]; then
+    cp "${BUILD_DIR}/hooks.json" "$CONFIG_DIR/hooks.json"
 else
-    curl -sSL -o "$HOOKS_FILE" "${REPO_RAW}/hooks.json"
+    curl -sSL -o "$CONFIG_DIR/hooks.json" "${REPO_RAW}/hooks.json"
 fi
 
-# 5. Перезапуск Coucou
-echo "🚀 Запуск Coucou..."
-pkill -x Coucou 2>/dev/null || true
+# 4. Запуск CoucouAntigravity
+echo "🚀 Запуск CoucouAntigravity..."
+nohup "$APP_PATH/Contents/MacOS/CoucouAntigravity" > /tmp/coucou_antigravity.log 2>&1 &
 sleep 1
-open "$APP_PATH"
 
 echo "🔐 Перевірка дозволів Спеціальних можливостей (Accessibility)..."
 open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility" 2>/dev/null || true
@@ -116,8 +120,7 @@ open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibil
 echo ""
 echo "🎉 ВСТАНОВЛЕННЯ УСПІШНО ЗАВЕРШЕНО!"
 echo "--------------------------------------------------------"
-echo "1. У вікні 'Спеціальні можливості' переконайтеся, що Coucou увімкнено."
-echo "2. Якщо macOS запитає дозвіл на сповіщення — натисніть 'Дозволити'."
-echo "3. Тепер усі запитання та запити дозволів Antigravity дублюються в чілку!"
-echo "4. Клік по варіанту в чілці автоматично вибирає і підтверджує його в Antigravity."
+echo "1. CoucouAntigravity тепер живе у вашій чілці та панелі меню."
+echo "2. Усі запитання Antigravity одночасно зʼявляються і в чілці, і у вікні."
+echo "3. Клік по варіанту в чілці автоматично вибирає і підтверджує його в чаті!"
 echo "--------------------------------------------------------"

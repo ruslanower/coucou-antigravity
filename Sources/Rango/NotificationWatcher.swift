@@ -2,6 +2,7 @@ import AppKit
 import ApplicationServices
 import Foundation
 
+@MainActor
 final class NotificationWatcher {
     static let shared = NotificationWatcher()
 
@@ -15,22 +16,18 @@ final class NotificationWatcher {
 
     func start() {
         NSLog("[Rango] NotificationWatcher starting background observation...")
-        DispatchQueue.main.async { [weak self] in
-            self?.timer?.invalidate()
-            self?.timer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true) { [weak self] _ in
-                DispatchQueue.global(qos: .userInteractive).async {
-                    self?.checkSystemNotifications()
-                    self?.checkDockBadges()
-                }
+        timer?.invalidate()
+        timer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.checkSystemNotifications()
+                self?.checkDockBadges()
             }
         }
     }
 
     func stop() {
-        DispatchQueue.main.async { [weak self] in
-            self?.timer?.invalidate()
-            self?.timer = nil
-        }
+        timer?.invalidate()
+        timer = nil
     }
 
     // MARK: - 1. NotificationCenter.app Active Banners Inspection
@@ -134,9 +131,7 @@ final class NotificationWatcher {
         }
 
         NSLog("[Rango] Real notification intercepted: app=%@ sender=%@ message=%@", app, sender, message)
-        Task { @MainActor in
-            AppState.shared.showPhoneNotification(app: app, icon: icon, sender: sender, message: message)
-        }
+        AppState.shared.showPhoneNotification(app: app, icon: icon, sender: sender, message: message)
     }
 
     // MARK: - 2. Dock Badge Inspection (Fallback when banners are disabled or silent)
@@ -170,14 +165,12 @@ final class NotificationWatcher {
                         if AppState.shared.notifyTelegram {
                             lastNotificationTime = Date()
                             NSLog("[Rango] Telegram dock badge increased to %@", badge)
-                            Task { @MainActor in
-                                AppState.shared.showPhoneNotification(
-                                    app: "Telegram",
-                                    icon: "✈️",
-                                    sender: "Telegram",
-                                    message: "Нове повідомлення (\(badge))"
-                                )
-                            }
+                            AppState.shared.showPhoneNotification(
+                                app: "Telegram",
+                                icon: "✈️",
+                                sender: "Telegram",
+                                message: "Нове повідомлення (\(badge))"
+                            )
                         }
                     } else if badge.isEmpty {
                         lastTelegramBadge = ""
@@ -188,14 +181,12 @@ final class NotificationWatcher {
                         if AppState.shared.notifyWhatsApp {
                             lastNotificationTime = Date()
                             NSLog("[Rango] WhatsApp dock badge increased to %@", badge)
-                            Task { @MainActor in
-                                AppState.shared.showPhoneNotification(
-                                    app: "WhatsApp",
-                                    icon: "💬",
-                                    sender: "WhatsApp",
-                                    message: "Нове повідомлення (\(badge))"
-                                )
-                            }
+                            AppState.shared.showPhoneNotification(
+                                app: "WhatsApp",
+                                icon: "💬",
+                                sender: "WhatsApp",
+                                message: "Нове повідомлення (\(badge))"
+                            )
                         }
                     } else if badge.isEmpty {
                         lastWhatsAppBadge = ""

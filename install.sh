@@ -1,11 +1,13 @@
 #!/bin/bash
 set -e
 
-# Coucou + Google Antigravity Automated Installer for macOS
-# Repository: https://github.com/ruslanower/coucou-antigravity
+# ========================================================
+#   Coucou + Google Antigravity Automated Installer
+#   Repository: https://github.com/ruslanower/coucou-antigravity
+# ========================================================
 
 echo "========================================================"
-echo "    Coucou + Antigravity Auto-Installer for macOS      "
+echo "    Coucou + Google Antigravity Auto-Installer         "
 echo "========================================================"
 
 if [ "$(uname)" != "Darwin" ]; then
@@ -39,7 +41,7 @@ if [ ! -d "$APP_PATH" ] || [ "$1" == "--force" ]; then
     rm -rf "$APP_PATH"
     cp -R "${TMP_DIR}/extracted/Coucou.app" "$APP_PATH"
     rm -rf "$TMP_DIR"
-    echo "✅ Coucou.app встановлено в ${APP_PATH}"
+    echo "✅ Coucou.app успішно встановлено в ${APP_PATH}"
 else
     echo "✅ Coucou.app вже встановлено в ${APP_PATH}"
 fi
@@ -47,8 +49,8 @@ fi
 # Зняття карантину Gatekeeper
 xattr -cr "$APP_PATH" 2>/dev/null || true
 
-# 2. Налаштування директорії підтримки
-echo "⚙️  Налаштування мосту NotchBuddy..."
+# 2. Налаштування мосту NotchBuddy
+echo "⚙️  Встановлення мосту Antigravity <-> Coucou..."
 mkdir -p "$SUPPORT_DIR"
 chmod 700 "$SUPPORT_DIR"
 
@@ -56,14 +58,14 @@ if [ -n "$SCRIPT_DIR" ] && [ -f "${SCRIPT_DIR}/nb-hook.py" ]; then
     cp "${SCRIPT_DIR}/nb-hook" "$SUPPORT_DIR/nb-hook"
     cp "${SCRIPT_DIR}/nb-hook.py" "$SUPPORT_DIR/nb-hook.py"
 else
-    echo "🌐 Завантаження оновлених скриптів релея з GitHub..."
+    echo "🌐 Завантаження скриптів мосту з GitHub..."
     curl -sSL -o "$SUPPORT_DIR/nb-hook" "${REPO_RAW}/nb-hook"
     curl -sSL -o "$SUPPORT_DIR/nb-hook.py" "${REPO_RAW}/nb-hook.py"
 fi
 
 chmod +x "$SUPPORT_DIR/nb-hook" "$SUPPORT_DIR/nb-hook.py"
 
-# 3. Налаштування параметрів Coucou (активація карток у чілці та віджету Antigravity)
+# 3. Налаштування параметрів Coucou (активація віджету Antigravity та показу карток)
 echo "🛠  Активація віджета Antigravity та показу карток у чілці..."
 defaults write fr.louisraille.NotchBuddy terminalCardsEnabled -bool true
 defaults write fr.louisraille.NotchBuddy mainPill -string "agent_antigravity"
@@ -86,7 +88,7 @@ if os.path.exists(p):
             pl["activeIntegrations"] = json.dumps(items).encode("utf-8")
             with open(p, "wb") as f:
                 plistlib.dump(pl, f)
-    except Exception as e:
+    except Exception:
         pass
 PYEOF
 
@@ -107,14 +109,14 @@ pkill -x Coucou 2>/dev/null || true
 sleep 1
 open "$APP_PATH"
 
-echo "🔐 Відкриття системних налаштувань Спеціальних можливостей (Accessibility)..."
+echo "🔐 Перевірка дозволів Спеціальних можливостей (Accessibility)..."
 open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility" 2>/dev/null || true
 
 echo ""
-echo "🎉 УСТАНОВКА УСПІШНО ЗАВЕРШЕНА!"
+echo "🎉 ВСТАНОВЛЕННЯ УСПІШНО ЗАВЕРШЕНО!"
 echo "--------------------------------------------------------"
-echo "1. У відкритому вікні 'Спеціальні можливості' увімкніть перемикач навпроти Coucou."
-echo "2. Якщо macOS запитає дозвіл на показ сповіщень — натисніть 'Дозволити' (Allow)."
-echo "3. Mochi тепер активний у чілці екрана."
-echo "4. Antigravity автоматично транслює всі дії, питання та запити дозволів у чілку!"
+echo "1. У вікні 'Спеціальні можливості' переконайтеся, що Coucou увімкнено."
+echo "2. Якщо macOS запитає дозвіл на сповіщення — натисніть 'Дозволити'."
+echo "3. Тепер усі запитання та запити дозволів Antigravity дублюються в чілку!"
+echo "4. Клік по варіанту в чілці автоматично вибирає і підтверджує його в Antigravity."
 echo "--------------------------------------------------------"

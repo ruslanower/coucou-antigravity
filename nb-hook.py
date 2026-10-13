@@ -213,16 +213,41 @@ def main():
                     'coucou_kind': 'ask_user_question',
                     'coucou_agent': 'antigravity',
                     'session_id': payload.get('session_id', 'antigravity'),
-                    'cwd': payload.get('cwd', ''),
+                    'cwd': payload.get('cwd', '') or os.getcwd(),
                     'term_program': 'iTerm.app',
                     'bundle_id': 'com.googlecode.iterm2',
                     'tool_name': 'AskUserQuestion',
                     'tool_input': {'questions': formatted_qs}
                 }
-                # Spawn background daemon that bridges Coucou clicks -> Antigravity IDE modal
-                spawn_antigravity_notch_worker(q_card)
+                try:
+                    s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+                    s.settimeout(115.0)
+                    s.connect(SOCKET_PATH)
+                    s.sendall((json.dumps(q_card) + "\n").encode())
+                    chunks = []
+                    while True:
+                        chunk = s.recv(4096)
+                        if not chunk:
+                            break
+                        chunks.append(chunk)
+                        if b'\n' in chunk:
+                            break
+                    s.close()
+                    resp_text = b''.join(chunks).decode().strip()
+                    if resp_text:
+                        resp_obj = json.loads(resp_text)
+                        if resp_obj.get('permissionDecision') == 'answer':
+                            answers = resp_obj.get('answers', {})
+                            ans_list = [f"{k}: {v}" for k, v in answers.items()]
+                            ans_str = "; ".join(ans_list)
+                            out = {"decision": "deny", "reason": f"Відповідь користувача з чілки Coucou: {ans_str}"}
+                            sys.stdout.write(json.dumps(out) + '\n')
+                            sys.stdout.flush()
+                            return
+                except Exception:
+                    pass
 
-            # Return "ask" immediately so Antigravity renders its IDE modal simultaneously
+            # Fallback if user clicked "Reply in terminal" or Coucou is not running:
             sys.stdout.write('{"decision":"ask"}\n')
             sys.stdout.flush()
             return

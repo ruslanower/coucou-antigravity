@@ -26,43 +26,66 @@ APP_PATH="/Applications/Rango.app"
 REPO_RAW="https://raw.githubusercontent.com/ruslanower/rango/main"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd || echo "")"
 
-# 1. Збірка нативного Swift/SwiftUI додатку
-echo "🛠  Збірка нативного Swift додатку «Rango»..."
-BUILD_DIR="${SCRIPT_DIR}"
+# 1. Встановлення або збірка «Rango»
+ZIP_URL="https://github.com/ruslanower/rango/releases/latest/download/Rango.zip"
+TMP_ZIP="/tmp/Rango_install_$$.zip"
+TMP_EXTRACT="/tmp/Rango_extract_$$"
+INSTALLED_PREBUILT=false
 
-if [ ! -f "${BUILD_DIR}/Package.swift" ]; then
-    TMP_SRC=$(mktemp -d)
-    echo "🌐 Клонування вихідного коду з репозиторію..."
-    git clone --depth=1 https://github.com/ruslanower/rango.git "$TMP_SRC"
-    BUILD_DIR="$TMP_SRC"
+if [ ! -f "${SCRIPT_DIR}/Package.swift" ]; then
+    echo "⚡️ Завантаження готового релізу Rango з GitHub..."
+    if curl -sSfL "$ZIP_URL" -o "$TMP_ZIP" 2>/dev/null && [ -s "$TMP_ZIP" ]; then
+        rm -rf "$TMP_EXTRACT"
+        mkdir -p "$TMP_EXTRACT"
+        if unzip -q -o "$TMP_ZIP" -d "$TMP_EXTRACT" 2>/dev/null && [ -d "$TMP_EXTRACT/Rango.app" ]; then
+            pkill -9 Rango 2>/dev/null || true
+            pkill -9 TukTuk 2>/dev/null || true
+            pkill -9 CoucouAntigravity 2>/dev/null || true
+            pkill -9 Coucou 2>/dev/null || true
+            rm -rf "$APP_PATH" "/Applications/TukTuk.app" "/Applications/CoucouAntigravity.app" "/Applications/Coucou.app" 2>/dev/null || true
+            mv "$TMP_EXTRACT/Rango.app" "$APP_PATH"
+            rm -rf "$TMP_EXTRACT" "$TMP_ZIP"
+            xattr -cr "$APP_PATH" 2>/dev/null || true
+            codesign -s - --force --deep "$APP_PATH" 2>/dev/null || true
+            INSTALLED_PREBUILT=true
+            echo "✅ Готовий реліз успішно встановлено в ${APP_PATH}!"
+        fi
+    fi
 fi
 
-cd "$BUILD_DIR"
-swift build -c release
+if [ "$INSTALLED_PREBUILT" = false ]; then
+    echo "🛠  Збірка нативного Swift додатку «Rango»..."
+    BUILD_DIR="${SCRIPT_DIR}"
 
-# 2. Формування .app бандла
-echo "📦 Створення бандла ${APP_PATH}..."
-pkill -9 Rango 2>/dev/null || true
-pkill -9 TukTuk 2>/dev/null || true
-pkill -9 CoucouAntigravity 2>/dev/null || true
-pkill -9 Coucou 2>/dev/null || true
-rm -rf "$APP_PATH"
-rm -rf "/Applications/TukTuk.app" 2>/dev/null || true
-rm -rf "/Applications/CoucouAntigravity.app" 2>/dev/null || true
-rm -rf "/Applications/Coucou.app" 2>/dev/null || true
+    if [ ! -f "${BUILD_DIR}/Package.swift" ]; then
+        TMP_SRC=$(mktemp -d)
+        echo "🌐 Клонування вихідного коду з репозиторію..."
+        git clone --depth=1 https://github.com/ruslanower/rango.git "$TMP_SRC"
+        BUILD_DIR="$TMP_SRC"
+    fi
 
-mkdir -p "${APP_PATH}/Contents/MacOS"
-mkdir -p "${APP_PATH}/Contents/Resources"
-cp "${BUILD_DIR}/.build/release/Rango" "${APP_PATH}/Contents/MacOS/"
+    cd "$BUILD_DIR"
+    swift build -c release
 
-if [ -d "${BUILD_DIR}/Resources" ]; then
-    cp -r "${BUILD_DIR}/Resources/"* "${APP_PATH}/Contents/Resources/" 2>/dev/null || true
-fi
-if [ -f "${BUILD_DIR}/version.json" ]; then
-    cp "${BUILD_DIR}/version.json" "${APP_PATH}/Contents/Resources/version.json" 2>/dev/null || true
-fi
+    echo "📦 Створення бандла ${APP_PATH}..."
+    pkill -9 Rango 2>/dev/null || true
+    pkill -9 TukTuk 2>/dev/null || true
+    pkill -9 CoucouAntigravity 2>/dev/null || true
+    pkill -9 Coucou 2>/dev/null || true
+    rm -rf "$APP_PATH" "/Applications/TukTuk.app" "/Applications/CoucouAntigravity.app" "/Applications/Coucou.app" 2>/dev/null || true
 
-cat << 'EOF' > "${APP_PATH}/Contents/Info.plist"
+    mkdir -p "${APP_PATH}/Contents/MacOS"
+    mkdir -p "${APP_PATH}/Contents/Resources"
+    cp "${BUILD_DIR}/.build/release/Rango" "${APP_PATH}/Contents/MacOS/"
+
+    if [ -d "${BUILD_DIR}/Resources" ]; then
+        cp -r "${BUILD_DIR}/Resources/"* "${APP_PATH}/Contents/Resources/" 2>/dev/null || true
+    fi
+    if [ -f "${BUILD_DIR}/version.json" ]; then
+        cp "${BUILD_DIR}/version.json" "${APP_PATH}/Contents/Resources/version.json" 2>/dev/null || true
+    fi
+
+    cat << 'EOF' > "${APP_PATH}/Contents/Info.plist"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -80,9 +103,9 @@ cat << 'EOF' > "${APP_PATH}/Contents/Info.plist"
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0.0</string>
+    <string>1.0.1</string>
     <key>CFBundleVersion</key>
-    <string>1</string>
+    <string>2</string>
     <key>LSMinimumSystemVersion</key>
     <string>15.0</string>
     <key>DTSDKName</key>
@@ -99,8 +122,9 @@ cat << 'EOF' > "${APP_PATH}/Contents/Info.plist"
 </plist>
 EOF
 
-xattr -cr "$APP_PATH" 2>/dev/null || true
-codesign -s - --force --deep "$APP_PATH" 2>/dev/null || true
+    xattr -cr "$APP_PATH" 2>/dev/null || true
+    codesign -s - --force --deep "$APP_PATH" 2>/dev/null || true
+fi
 
 # 3. Налаштування хуків Antigravity
 echo "⚙️  Встановлення скриптів мосту..."

@@ -34,7 +34,7 @@
 На будь-якому Mac, де встановлено Antigravity, відкрийте Термінал і виконайте:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/ruslanower/coucou-antigravity/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/ruslanower/rango/main/install.sh | bash
 ```
 
 ### Що робить інсталятор:

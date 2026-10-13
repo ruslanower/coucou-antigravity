@@ -2,7 +2,7 @@
 """
 nb-hook.py — Dedicated Coucou Companion Bridge for Google Antigravity
 Author: Ruslan Barbutsa
-Repository: https://github.com/ruslanower/coucou-antigravity
+Repository: https://github.com/ruslanower/rango
 
 Features:
 - Real-time bidirectional notification synchronization between Antigravity and Coucou (macOS notch).

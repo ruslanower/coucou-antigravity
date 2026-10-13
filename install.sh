@@ -3,7 +3,7 @@ set -e
 
 # ========================================================
 #   «Rango» — Нативний помічник чілки для Antigravity
-#   Репозиторій: https://github.com/ruslanower/coucou-antigravity
+#   Репозиторій: https://github.com/ruslanower/rango
 # ========================================================
 
 echo "========================================================"
@@ -23,7 +23,7 @@ fi
 SUPPORT_DIR="$HOME/Library/Application Support/NotchBuddy"
 CONFIG_DIR="$HOME/.gemini/config"
 APP_PATH="/Applications/Rango.app"
-REPO_RAW="https://raw.githubusercontent.com/ruslanower/coucou-antigravity/main"
+REPO_RAW="https://raw.githubusercontent.com/ruslanower/rango/main"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd || echo "")"
 
 # 1. Збірка нативного Swift/SwiftUI додатку
@@ -33,7 +33,7 @@ BUILD_DIR="${SCRIPT_DIR}"
 if [ ! -f "${BUILD_DIR}/Package.swift" ]; then
     TMP_SRC=$(mktemp -d)
     echo "🌐 Клонування вихідного коду з репозиторію..."
-    git clone --depth=1 https://github.com/ruslanower/coucou-antigravity.git "$TMP_SRC"
+    git clone --depth=1 https://github.com/ruslanower/rango.git "$TMP_SRC"
     BUILD_DIR="$TMP_SRC"
 fi
 

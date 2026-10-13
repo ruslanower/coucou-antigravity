@@ -233,14 +233,14 @@ struct AntigravitySettingsTab: View {
                         Text("Виконайте команду в терміналі:")
                             .font(.system(size: 11, weight: .semibold))
                         HStack {
-                            Text("curl -sSL https://raw.githubusercontent.com/ruslanower/coucou-antigravity/main/install.sh | bash")
+                            Text("curl -sSL https://raw.githubusercontent.com/ruslanower/rango/main/install.sh | bash")
                                 .font(.system(size: 10, design: .monospaced))
                                 .padding(6)
                                 .background(Color.black.opacity(0.1))
                                 .cornerRadius(4)
                             Button("Копіювати") {
                                 NSPasteboard.general.clearContents()
-                                NSPasteboard.general.setString("curl -sSL https://raw.githubusercontent.com/ruslanower/coucou-antigravity/main/install.sh | bash", forType: .string)
+                                NSPasteboard.general.setString("curl -sSL https://raw.githubusercontent.com/ruslanower/rango/main/install.sh | bash", forType: .string)
                             }
                             .controlSize(.small)
                         }
@@ -385,7 +385,7 @@ struct AboutSettingsTab: View {
             VStack(spacing: 6) {
                 Text("Розробник: Руслан Барбуца")
                     .font(.system(size: 11.5, weight: .medium))
-                Link("Відкрити репозиторій на GitHub", destination: URL(string: "https://github.com/ruslanower/coucou-antigravity")!)
+                Link("Відкрити репозиторій на GitHub", destination: URL(string: "https://github.com/ruslanower/rango")!)
                     .font(.system(size: 11))
             }
 

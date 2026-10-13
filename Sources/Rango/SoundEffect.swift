@@ -18,6 +18,7 @@ final class SoundEffect {
             "/Applications/TukTuk.app/Contents/Resources/sounds",
             "/Applications/CoucouAntigravity.app/Contents/Resources/sounds",
             NSString("~/Library/Application Support/NotchBuddy/sounds").expandingTildeInPath,
+            NSString("~/.rango/sounds").expandingTildeInPath,
             NSString("~/.coucou-antigravity/sounds").expandingTildeInPath
         ].compactMap { $0 }
 

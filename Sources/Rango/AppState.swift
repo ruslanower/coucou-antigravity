@@ -78,6 +78,7 @@ final class AppState: ObservableObject {
     private var statusResetWorkItem: DispatchWorkItem?
     private var questionTimeoutWorkItem: DispatchWorkItem?
     private var hoverCloseWorkItem: DispatchWorkItem?
+    private var notificationDismissWorkItem: DispatchWorkItem?
     private var blinkTimer: AnyCancellable?
 
     private init() {
@@ -143,6 +144,7 @@ final class AppState: ObservableObject {
         statusResetWorkItem?.cancel()
         questionTimeoutWorkItem?.cancel()
         hoverCloseWorkItem?.cancel()
+        notificationDismissWorkItem?.cancel()
 
         withAnimation(.spring(response: 0.38, dampingFraction: 0.78)) {
             self.state = .question(QuestionModel(question: question, options: options))
@@ -164,21 +166,20 @@ final class AppState: ObservableObject {
         }
     }
 
-    func showStatus(_ text: String, autoDismissAfter: Double = 3.5) {
+    func showStatus(_ text: String, autoDismissAfter: Double = 3.0) {
         statusResetWorkItem?.cancel()
-        if case .question = self.state {
-            return // Do not overwrite an active interactive question
-        }
-        if case .hoverDrawer = self.state {
-            return // Do not close or interrupt the drawer if user is currently interacting with it
-        }
-        withAnimation(.spring(response: 0.35, dampingFraction: 0.78)) {
+        // High-priority states must NEVER be overwritten by background telemetry!
+        if case .question = self.state { return }
+        if case .hoverDrawer = self.state { return }
+        if case .notification = self.state { return }
+
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
             self.state = .status(text)
         }
         let work = DispatchWorkItem { [weak self] in
             guard let self = self else { return }
             if case .status = self.state {
-                withAnimation(.spring(response: 0.35, dampingFraction: 0.78)) {
+                withAnimation(.spring(response: 0.32, dampingFraction: 0.82)) {
                     self.state = .idle
                 }
             }
@@ -187,12 +188,12 @@ final class AppState: ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + autoDismissAfter, execute: work)
     }
 
-    func scheduleCloseStatus(delay: Double = 1.0) {
+    func scheduleCloseStatus(delay: Double = 0.8) {
         statusResetWorkItem?.cancel()
         let work = DispatchWorkItem { [weak self] in
             guard let self = self else { return }
             if case .status = self.state {
-                withAnimation(.spring(response: 0.35, dampingFraction: 0.78)) {
+                withAnimation(.spring(response: 0.32, dampingFraction: 0.82)) {
                     self.state = .idle
                 }
             }
@@ -201,14 +202,27 @@ final class AppState: ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
     }
 
+    func agentDidFinish() {
+        if case .status = self.state {
+            scheduleCloseStatus(delay: 0.8)
+        }
+    }
+
     func showPhoneNotification(app: String, icon: String, sender: String, message: String, autoDismissAfter: Double = 5.5) {
         if case .question = self.state { return } // Do not overwrite active question
+        notificationDismissWorkItem?.cancel()
         statusResetWorkItem?.cancel()
+
         let model = PhoneNotificationModel(app: app, icon: icon, sender: sender, message: message)
         withAnimation(.spring(response: 0.38, dampingFraction: 0.78)) {
             self.state = .notification(model)
         }
         SoundEffect.shared.play("pop")
+        scheduleNotificationDismiss(delay: autoDismissAfter)
+    }
+
+    func scheduleNotificationDismiss(delay: Double = 5.5) {
+        notificationDismissWorkItem?.cancel()
         let work = DispatchWorkItem { [weak self] in
             guard let self = self else { return }
             if case .notification = self.state {
@@ -217,14 +231,23 @@ final class AppState: ObservableObject {
                 }
             }
         }
-        statusResetWorkItem = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + autoDismissAfter, execute: work)
+        notificationDismissWorkItem = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
+    }
+
+    func pauseNotificationDismiss() {
+        notificationDismissWorkItem?.cancel()
+    }
+
+    func resumeNotificationDismiss(delay: Double = 2.0) {
+        scheduleNotificationDismiss(delay: delay)
     }
 
     func close() {
         statusResetWorkItem?.cancel()
         questionTimeoutWorkItem?.cancel()
         hoverCloseWorkItem?.cancel()
+        notificationDismissWorkItem?.cancel()
 
         withAnimation(.spring(response: 0.35, dampingFraction: 0.78)) {
             self.state = .idle

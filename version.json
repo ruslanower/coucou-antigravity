@@ -1,7 +1,7 @@
 {
-  "version": "1.0.6",
-  "build": 7,
+  "version": "1.0.7",
+  "build": 8,
   "commit": "HEAD",
-  "releaseNotes": "Виправлено відкриття шторки при наведенні курсору під час статусу «Думаю...» та виконання команд",
+  "releaseNotes": "Повний фікс сповіщень (Telegram, WhatsApp, iPhone, система), плавне відкриття шторки при наведенні, ідеальна нативна геометрія чілки без косяків",
   "downloadUrl": "https://github.com/ruslanower/rango/releases/latest/download/Rango.zip"
 }

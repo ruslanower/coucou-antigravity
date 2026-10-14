@@ -49,29 +49,31 @@ final class NotchContainerView: NSView {
 
         switch state {
         case .idle:
-            let inNotchZone = point.y >= (topY - 36) && centerDist <= 110
-            if inNotchZone {
+            let inZone = point.y >= (topY - 48) && centerDist <= 130
+            if inZone {
                 AppState.shared.openHoverDrawer()
             }
 
         case .status:
-            let inStatusZone = point.y >= (topY - 38) && centerDist <= 185
-            if inStatusZone {
+            let inZone = point.y >= (topY - 48) && centerDist <= 200
+            if inZone {
                 AppState.shared.openHoverDrawer()
             }
 
         case .notification:
-            let inNotifZone = point.y >= (topY - 90) && centerDist <= 195
-            if inNotifZone {
-                AppState.shared.cancelScheduledCloseHover()
+            let inZone = point.y >= (topY - 80) && centerDist <= 220
+            if inZone {
+                AppState.shared.pauseNotificationDismiss()
+            } else {
+                AppState.shared.resumeNotificationDismiss(delay: 2.0)
             }
 
         case .hoverDrawer:
-            let inDrawerZone = point.y >= (topY - 175) && centerDist <= 260
-            if inDrawerZone {
+            let inZone = point.y >= (topY - 180) && centerDist <= 265
+            if inZone {
                 AppState.shared.cancelScheduledCloseHover()
             } else {
-                AppState.shared.scheduleCloseHoverDrawer()
+                AppState.shared.scheduleCloseHoverDrawer(delay: 0.35)
             }
 
         default:
@@ -81,7 +83,9 @@ final class NotchContainerView: NSView {
 
     override func mouseExited(with event: NSEvent) {
         if AppState.shared.state == .hoverDrawer {
-            AppState.shared.scheduleCloseHoverDrawer()
+            AppState.shared.scheduleCloseHoverDrawer(delay: 0.35)
+        } else if case .notification = AppState.shared.state {
+            AppState.shared.resumeNotificationDismiss(delay: 2.0)
         }
     }
 
@@ -93,24 +97,24 @@ final class NotchContainerView: NSView {
 
         switch state {
         case .idle:
-            let inNotchZone = point.y >= (topY - 36) && centerDist <= 110
-            return inNotchZone ? view : nil
-
-        case .hoverDrawer:
-            let inDrawerZone = point.y >= (topY - 175) && centerDist <= 260
-            return inDrawerZone ? view : nil
-
-        case .question:
-            let inQuestionZone = point.y >= (topY - 390) && centerDist <= 255
-            return inQuestionZone ? view : nil
+            let inZone = point.y >= (topY - 48) && centerDist <= 130
+            return inZone ? view : nil
 
         case .status:
-            let inStatusZone = point.y >= (topY - 38) && centerDist <= 185
-            return inStatusZone ? view : nil
+            let inZone = point.y >= (topY - 48) && centerDist <= 200
+            return inZone ? view : nil
+
+        case .hoverDrawer:
+            let inZone = point.y >= (topY - 180) && centerDist <= 265
+            return inZone ? view : nil
+
+        case .question:
+            let inZone = point.y >= (topY - 360) && centerDist <= 260
+            return inZone ? view : nil
 
         case .notification:
-            let inNotifZone = point.y >= (topY - 90) && centerDist <= 195
-            return inNotifZone ? view : nil
+            let inZone = point.y >= (topY - 80) && centerDist <= 220
+            return inZone ? view : nil
         }
     }
 }

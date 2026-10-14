@@ -128,10 +128,18 @@ final class SocketServer {
         let toolName = (obj["tool_name"] as? String) ?? (obj["tool"] as? String) ?? ""
         NSLog("[Rango] Processing message: type=%@ tool=%@", type, toolName)
 
-        // 1. Close / Dismiss / Question completion / Stop
-        if type == "close" || type == "dismiss" || type == "Stop" || (type == "PostToolUse" && toolName == "ask_question") {
+        // 1. Explicit Close / Dismiss / Question completion
+        if type == "close" || type == "dismiss" || (type == "PostToolUse" && toolName == "ask_question") {
             Task { @MainActor in
                 AppState.shared.close()
+            }
+            return
+        }
+
+        // 1.1 Agent Stop
+        if type == "Stop" {
+            Task { @MainActor in
+                AppState.shared.agentDidFinish()
             }
             return
         }
@@ -234,7 +242,7 @@ final class SocketServer {
             }
 
             Task { @MainActor in
-                AppState.shared.showStatus(statusText, autoDismissAfter: 12.0)
+                AppState.shared.showStatus(statusText, autoDismissAfter: 4.5)
             }
             return
         }
@@ -243,7 +251,7 @@ final class SocketServer {
         if type == "PostToolUse" {
             Task { @MainActor in
                 if case .status = AppState.shared.state {
-                    AppState.shared.showStatus("✅ Готово", autoDismissAfter: 1.2)
+                    AppState.shared.showStatus("✅ Готово", autoDismissAfter: 1.0)
                 }
             }
             return
@@ -252,8 +260,7 @@ final class SocketServer {
         // 6. PreInvocation - Agent thinking / preparing
         if type == "PreInvocation" {
             Task { @MainActor in
-                if case .question = AppState.shared.state { return }
-                AppState.shared.showStatus("💭 Думаю...", autoDismissAfter: 6.0)
+                AppState.shared.showStatus("💭 Думаю...", autoDismissAfter: 3.5)
             }
             return
         }
@@ -261,9 +268,7 @@ final class SocketServer {
         // 7. PostInvocation - Agent finished turn
         if type == "PostInvocation" {
             Task { @MainActor in
-                if case .status = AppState.shared.state {
-                    AppState.shared.scheduleCloseStatus(delay: 1.2)
-                }
+                AppState.shared.agentDidFinish()
             }
             return
         }

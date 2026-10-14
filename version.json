@@ -1,7 +1,7 @@
 {
-  "version": "1.0.7",
-  "build": 8,
+  "version": "1.0.8",
+  "build": 9,
   "commit": "HEAD",
-  "releaseNotes": "Повний фікс сповіщень (Telegram, WhatsApp, iPhone, система), плавне відкриття шторки при наведенні, ідеальна нативна геометрія чілки без косяків",
+  "releaseNotes": "Генератор ідей тепер аналізує весь спектр думок, проєктів та стратегічних векторів (FoodTech, Coach OS, VanzaLabs Video, 100% Вийде, Legal Tech, Ambient Mac)",
   "downloadUrl": "https://github.com/ruslanower/rango/releases/latest/download/Rango.zip"
 }
